@@ -1,2 +1,2 @@
-# ai-pulse-nvidia-trt-llm
-Sources and datasets to deploy Nvidia TRT -LLM on Scaleway Ecosystem
+# WIP
+Work in progress , files will be uploaded here after ai pulse
