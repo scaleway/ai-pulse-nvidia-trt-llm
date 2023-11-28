@@ -149,7 +149,18 @@ b'<s>I am going to 100% agree with you on this one. I have been a fan of the sho
 
 ## Performance Comparison
 
-In this section, we compare both model's performance on a subset of the [CNN Dailymail Dataset](https://huggingface.co/datasets/cnn_dailymail). We compare the inference time of each run. The following is a snippet of our dataset content. Make sure to use a similar structure.
+In this section, we compare both model's performance on a subset of the [CNN Dailymail Dataset](https://huggingface.co/datasets/cnn_dailymail). We rely on [MLPerf Inference Benchmark Suite](https://github.com/mlcommons/inference/tree/master/language/gpt-j)) to generate `cnn_eval.json` file following these steps.
+
+```bash
+git clone https://github.com/mlcommons/inference.git
+cd inference
+cd language/gpt-j/
+pip install simplejson
+python download_cnndm.py
+```
+
+To evaluate the inference time of each of our runs, we only use few promtps from `cnn_eval.json`. The truncated file is called `mini_cnn_eval.json` and has the following structure.
+
 
 
 ```
