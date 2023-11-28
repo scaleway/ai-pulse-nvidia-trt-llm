@@ -121,26 +121,39 @@ EOF
 ```
 sudo docker build -t tritonserver-aipulse:23.10 -f /scratch/docker/Dockerfile.server .
 ```
-4. Then we can start a container based on the image and bind the workspace volume to our scratch volume location
+
+#### Client
+To make an inference request to Triton Inference Server, we send HTTP or gRPC request to server endpoint.
+Triton offers some [Client libraries](https://github.com/triton-inference-server/client) that ease these interactions, we bundles these library using a docker image.
+1. Create the Dockerfile 
 ```
-#!/bin/bash
-IMAGE_NAME=tritonserver-aipulse:23.10
-WORK_DIR=/scratch
-sudo docker run -d                                      \
-        --runtime=nvidia                                \
-        --gpus all                                      \
-        -it --rm                                        \
-        --name triton_server                            \
-        --net host --shm-size=2g                        \
-        --ulimit memlock=-1 --ulimit stack=67108864     \
-        -v $WORK_DIR:/workspace                         \
-        $IMAGE_NAME bash 
+cat<<'EOF'>/scratch/docker/Dockerfile.client
+ARG TAG=23.10-trtllm-python-py3
+FROM nvcr.io/nvidia/tritonserver:${TAG}
+
+ENV DEBIAN_FRONTEND noninteractive
+
+RUN pip install  --no-cache-dir \
+    regex \
+    fire \
+    tritonclient[all] \
+    transformers==4.31.0 \
+    pandas \
+    tabulate \
+    datasets==2.14.5 \
+    rouge_score~=0.1.2 \
+    sentencepiece~=0.1.99
+
+RUN mkdir -p /workspace
+
+WORKDIR /workspace
+EOF
 ```
-5. You can then ensure than your Triton server is running
+2. Build the docker client image
+
 ```
-sudo docker ps
+sudo docker build -t tritonclient-aipulse:23.10 -f /scratch/docker/Dockerfile.client .
 ```
-![Container List Setup](images/setup/container_list.png)
 
 ## Next Step
 [Model's weights download and preparation](02-model_preparation.md) 

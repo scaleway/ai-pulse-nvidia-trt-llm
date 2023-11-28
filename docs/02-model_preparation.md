@@ -46,12 +46,20 @@ git -C /scratch/huggingface clone https://github.com/huggingface/transformers.gi
 2. Run the conversion by using the **Triton server image created before** as it contains all the python dependencies required for the process. 
 ```
 cp /scratch/meta/llama_models/tokenizer.model  /scratch/meta/llama_models/llama-2-7b-chat/tokenizer.model
-sudo docker exec -it triton_server python /workspace/huggingface/transformers/src/transformers/models/llama/convert_llama_weights_to_hf.py \
+sudo docker run -d                                      \
+        --runtime=nvidia                                \
+        --gpus all                                      \
+        -it --rm                                        \
+        --net host --shm-size=2g                        \
+        --ulimit memlock=-1 --ulimit stack=67108864     \
+        -v /scratch:/workspace                          \
+        tritonserver-aipulse:23.10  python /workspace/huggingface/transformers/src/transformers/models/llama/convert_llama_weights_to_hf.py \
         --input_dir /workspace/meta/llama_models/llama-2-7b-chat \
         --model_size 7B \
         --output_dir /workspace/meta/hf-weights/7B-chat
 ```
 ![Astuce icon](./images/common/astuce_icon.png) We copy first the **tokenizer.model** to be aligned with structure needed by the converter.
+You can use 'docker logs' to fetch your temporary container log and check that everything run well.
 
 
 ## TRT LLM compilation
@@ -73,17 +81,26 @@ pip install -r requirements.txt
 ```
 3. Run the `build.py` script to compile the TRT-LLM engines.
 ```
-sudo docker exec -it triton_server python  /workspace/tensorrtllm_backend/tensorrt_llm/examples/llama/build.py --model_dir /workspace/meta/hf-weights/7B-chat  \
-                --dtype float16 \
-                --use_gpt_attention_plugin float16  \
-                --paged_kv_cache \
-                --remove_input_padding \
-                --use_gemm_plugin float16  \
-                --output_dir "/workspace/trt-engines/llama_7b/fp16/1-gpu"  \
-                --max_input_len 2048 --max_output_len 512 \
-                --use_rmsnorm_plugin float16  \
-                --enable_context_fmha \
-                --use_inflight_batching
+sudo docker run -d                                      \
+        --runtime=nvidia                                \
+        --gpus all                                      \
+        -it --rm                                        \
+        --net host --shm-size=2g                        \
+        --ulimit memlock=-1 --ulimit stack=67108864     \
+        -v /scratch:/workspace                          \
+        tritonserver-aipulse:23.10                      \
+        python  /workspace/tensorrtllm_backend/tensorrt_llm/examples/llama/build.py  \
+        --model_dir /workspace/meta/hf-weights/7B-chat  \
+        --dtype float16 \
+        --use_gpt_attention_plugin float16  \
+        --paged_kv_cache \
+        --remove_input_padding \
+        --use_gemm_plugin float16  \
+        --output_dir "/workspace/trt-engines/llama_7b/fp16/1-gpu"  \
+        --max_input_len 2048 --max_output_len 512 \
+        --use_rmsnorm_plugin float16  \
+        --enable_context_fmha \
+        --use_inflight_batching
 ```
 ![TRT LLM Compilation](./images/model_preparation/trt_llm_compile.png)
 ![Astuce icon](./images/common/astuce_icon.png) We also rely here on the **Triton server image created before** as it contains all the python dependencies required for the process.
@@ -91,7 +108,14 @@ sudo docker exec -it triton_server python  /workspace/tensorrtllm_backend/tensor
 ### Testing
 We can test the output of the model with `run.py` located in the same llama examples folder.
 ```
-sudo docker exec -it triton_server python  /workspace/tensorrtllm_backend/tensorrt_llm/examples/llama/run.py   --engine_dir=/workspace/trt-engines/llama_7b/fp16/1-gpu \
+sudo docker run                                       \
+        --runtime=nvidia                                \
+        --gpus all                                      \
+        -it --rm                                        \
+        --net host --shm-size=2g                        \
+        --ulimit memlock=-1 --ulimit stack=67108864     \
+        -v /scratch:/workspace                          \
+        tritonserver-aipulse:23.10  python  /workspace/tensorrtllm_backend/tensorrt_llm/examples/llama/run.py   --engine_dir=/workspace/trt-engines/llama_7b/fp16/1-gpu \
                 --max_output_len 100 \
                 --tokenizer_dir /workspace/meta/llama_models \
                 --input_text "How do I count in French ? 1 un"
