@@ -1,7 +1,7 @@
 # Serving with Triton Inference Server
 
 ## Models Repository 
-Before launching Triton Inference Server, we need to prepare the models repository beforehand and it should respect the strucutre below. For further details on the model repository in Triton Inference server please refer to this [documentation](https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/docs/user_guide/model_repository.html).
+Before launching Triton Inference Server, we need to prepare the models repository beforehand and it should respect the structure below. For further details on the model repository in Triton Inference server please refer to this [documentation](https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/docs/user_guide/model_repository.html).
 ```bash
 <model-repository-path>/
   <model-name>/
