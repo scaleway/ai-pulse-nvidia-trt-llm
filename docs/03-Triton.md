@@ -193,7 +193,7 @@ The truncated  `mini_cnn_eval.json` should have the following structure.
 The [Identity Test Python VS TRT LLM script](../sources/benchmark/scripts/identity_test_python_vs_trtllm.py) will measure the total latency on multiple asynchronous request sent to the models 
 
 #### Launch on Python backend
-
+```
 sudo docker run                                        \
         --runtime=nvidia                                \
         -it --rm                                        \
@@ -202,10 +202,13 @@ sudo docker run                                        \
         --name triton_client                            \
         -v /scratch:/workspace                          \
         tritonclient-aipulse:23.10 python /usr/local/src/benchmark/scripts/identity_test_python_vs_trtllm.py -u localhost:8001 --max_input_len 100 --dataset /workspace/datasets/mini_cnn_eval.json -i grpc --model_name "llama-python"
+```
+![lla](images/triton/llama-python-performances.png)
 
 ![](images/common/astuce_icon.png) We can see here than the targeted model on the inference server is the **llama-python** which correspond to the python backend.
 
 #### Launch on TensorRT-LLM ensemble
+```
 sudo docker run                                        \
         --runtime=nvidia                                \
         -it --rm                                        \
@@ -214,7 +217,19 @@ sudo docker run                                        \
         --name triton_client                            \
         -v /scratch:/workspace                          \
         tritonclient-aipulse:23.10 python /usr/local/src/benchmark/scripts/identity_test_python_vs_trtllm.py -u localhost:8001 --max_input_len 100 --dataset /workspace/datasets/mini_cnn_eval.json -i grpc --model_name "ensemble"
-
+```
+![](images/triton/tensor_trt_performance.png)
 ![](images/common/astuce_icon.png) We can see here than the targeted model on the inference server is the **ensemble** which correspond to the TensorRT-LLM optimized one.
 
-# Add cleanup for container server
+As We can see here , the Tensor TRT optimized has better performance than the non optimized one.
+The speedup when TensorRT-LLM is used compared to the Python baseline in our example is **3**. We still can improve this speedup with other optimizations. 
+
+
+
+
+## Next Step
+### Cleanup
+```
+sudo docker container stop triton_server_benchmark
+```
+[Parallelism in TensorRT-LLM](04_Parallelism.md)
