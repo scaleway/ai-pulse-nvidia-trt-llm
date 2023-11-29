@@ -15,5 +15,6 @@ RUN pip install  --no-cache-dir \
     sentencepiece~=0.1.99
 
 RUN mkdir -p /workspace
+COPY ../../../benchmark/scripts  /usr/local/src/benchmark/scripts
 
 WORKDIR /workspace
