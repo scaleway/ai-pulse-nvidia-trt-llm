@@ -1,8 +1,6 @@
-# TensorRT-LLM to Compile and Run Models's Engines
-## Compile Engines for Llama 2 models
-For the compile phase , we will use the
-
 # Serving with Triton Inference Server
+## Introduction
+The purpose here is to compare performances of the llama2-7b model serve by Triton when it has been optimized using TensorRT-LLM Vs huggingface python one. 
 ## Models Repository 
 Before launching Triton Inference Server, we need to prepare the models repository beforehand and it should respect the structure below. For further details on the model repository in Triton Inference server please refer to this [documentation](https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/docs/user_guide/model_repository.html).
 Model repository are used by the Triton Server to detect model locations.
@@ -23,7 +21,8 @@ Model repository are used by the Triton Server to detect model locations.
       <model-definition-file>
     ...
 ```
-## TensorRT-LLM Model - Triton Ensemble 
+## TensorRT-LLM Model - Triton Ensemble
+### Overview
 An ensemble model represents a pipeline of one or more models and the connection of input and output tensors between those models. Read more about [ensembles](https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/docs/user_guide/architecture.html#ensemble-models).
 
 Our pipeline for TensorRT-LLM model serving in Triton comprises 4 components :
@@ -55,19 +54,7 @@ triton_model_repo/llama_7b/fp16/no-inflight/
     ├── 1
     └── config.pbtxt
 ```
-For simplicity in this particular experiment, the `llama-python` folder resides at the same level as the TensorRT-LLM components described above. Thus, the model repository should be similar to the following snippet. But, this is **not** recommended for production runs. 
-```
-triton_model_repo/llama_7b/python
-├── ensemble
-├── llama-python
-├── postprocessing
-├── preprocessing
-└── tensorrt_llm
-```
-
-### Python Model - HF Llama model 
-We will serve one reference model called *llama_python*, using Hugging Face Text Generation Pipeline and Triton Python Backend.
-The Text Generation Pipeline includes the tokenization, the inference on the model and the text decoding process. 
+### Steps
 1. Create the triton model repository that will holds all the triton model 
 ```
 mkdir -p /scratch/triton_model_repo/llama_7b/python
@@ -94,12 +81,27 @@ sed -i 's#${engine_dir}#/workspace/trt-engines/llama_7b/fp16/1-gpu#' /scratch/tr
 sed -i 's#${max_tokens_in_paged_kv_cache}##' /scratch/triton_model_repo/llama_7b/python/tensorrt_llm/config.pbtxt
 sed -i 's#${batch_scheduler_policy}#guaranteed_completion#' /scratch/triton_model_repo/llama_7b/python/tensorrt_llm/config.pbtxt
 ```
-6. Create the **llama_python** hugging face template
+## Python Model - HF Llama model
+### Overview 
+We will serve one reference model called *llama_python*, using Hugging Face Text Generation Pipeline and Triton Python Backend.
+The Text Generation Pipeline includes the tokenization, the inference on the model and the text decoding process. 
+
+![Astuce Icon](images/common/astuce_icon.png)For simplicity in this particular experiment, the `llama-python` folder resides at the same level as the TensorRT-LLM components described above. Thus, the model repository should be similar to the following snippet. But, this is **not** recommended for production runs. 
+```
+triton_model_repo/llama_7b/python
+├── ensemble
+├── llama-python
+├── postprocessing
+├── preprocessing
+└── tensorrt_llm
+```
+
+1. Create the **llama_python** hugging face template
    - **Folder creation**
 ```
 mkdir -p /scratch/triton_model_repo/llama_7b/python/llama-python/1
 ```
-   - **Add the python's triton model server**
+   - **Add the python's triton model**
 ```
 cat<<'EOF'>/scratch/triton_model_repo/llama_7b/python/llama-python/1/model.py
 # Copyright 2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
@@ -275,8 +277,6 @@ sudo docker run   -d                                    \
         --ulimit memlock=-1 --ulimit stack=67108864     \
         --name triton_server_huggingface                \
         -v /scratch:/workspace                          \
-        -p 8000:8000                                    \
-        -p 8001:8001                                    \
         tritonserver-aipulse:23.10 tritonserver --model-repository=/workspace/triton_model_repo/llama_7b/python
 ```
 ![Astuce icon](./images/common/astuce_icon.png)**NB**:
