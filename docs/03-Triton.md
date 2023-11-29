@@ -173,7 +173,7 @@ python3 download_cnndm.py
 4. Extract a subset  using jq 
 ```
 mkdir /scratch/datasets
-cat /scratch/inference/language/gpt-j/data/cnn_eval.json | jq '.[800:1000]' > /scratch/datasets/mini_cnn_eval.json
+cat /scratch/inference/language/gpt-j/data/cnn_eval.json | jq '.[0:100]' > /scratch/datasets/mini_cnn_eval.json
 ```
 
 The truncated  `mini_cnn_eval.json` should have the following structure.
@@ -201,11 +201,19 @@ sudo docker run                                        \
         --ulimit memlock=-1 --ulimit stack=67108864     \
         --name triton_client                            \
         -v /scratch:/workspace                          \
-        tritonclient-aipulse:23.10 python /usr/local/src/benchmark/scripts/identity_test_python_vs_trtllm.py -u localhost:8001 --max_input_len 100 --dataset /workspace/dataset/mini_cnn_eval.json -i grpc --model_name "llama-python"
+        tritonclient-aipulse:23.10 python /usr/local/src/benchmark/scripts/identity_test_python_vs_trtllm.py -u localhost:8001 --max_input_len 100 --dataset /workspace/datasets/mini_cnn_eval.json -i grpc --model_name "llama-python"
 
 ![](images/common/astuce_icon.png) We can see here than the targeted model on the inference server is the **llama-python** which correspond to the python backend.
 
 #### Launch on TensorRT-LLM ensemble
+sudo docker run                                        \
+        --runtime=nvidia                                \
+        -it --rm                                        \
+        --net host --shm-size=2g                        \
+        --ulimit memlock=-1 --ulimit stack=67108864     \
+        --name triton_client                            \
+        -v /scratch:/workspace                          \
+        tritonclient-aipulse:23.10 python /usr/local/src/benchmark/scripts/identity_test_python_vs_trtllm.py -u localhost:8001 --max_input_len 100 --dataset /workspace/datasets/mini_cnn_eval.json -i grpc --model_name "ensemble"
 
 ![](images/common/astuce_icon.png) We can see here than the targeted model on the inference server is the **ensemble** which correspond to the TensorRT-LLM optimized one.
 
