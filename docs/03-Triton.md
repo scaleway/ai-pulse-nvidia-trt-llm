@@ -90,183 +90,28 @@ The Text Generation Pipeline includes the tokenization, the inference on the mod
 ```
 triton_model_repo/llama_7b/python
 ├── ensemble
-├── llama-python
+├── **llama-python**
 ├── postprocessing
 ├── preprocessing
 └── tensorrt_llm
 ```
 
-1. Create the **llama_python** hugging face template
-   - **Folder creation**
+1. Create the **llama_python** hugging face template folder 
 ```
 mkdir -p /scratch/triton_model_repo/llama_7b/python/llama-python/1
 ```
-   - **Add the python's triton model**
+2. Add the python's triton model code
 ```
-cat<<'EOF'>/scratch/triton_model_repo/llama_7b/python/llama-python/1/model.py
-# Copyright 2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
-#
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions
-# are met:
-#  * Redistributions of source code must retain the above copyright
-#    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright
-#    notice, this list of conditions and the following disclaimer in the
-#    documentation and/or other materials provided with the distribution.
-#  * Neither the name of NVIDIA CORPORATION nor the names of its
-#    contributors may be used to endorse or promote products derived
-#    from this software without specific prior written permission.
-#
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ``AS IS'' AND ANY
-# EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-# PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR
-# CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-# PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
-# OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-import os
-
-os.environ[
-    "TRANSFORMERS_CACHE"
-] = "/opt/tritonserver/model_repository/llama-2-7b-chat-hf/hf_cache"
-import json
-
-import numpy as np
-import torch
-import transformers
-import triton_python_backend_utils as pb_utils
-
-
-class TritonPythonModel:
-    def initialize(self, args):
-        self.logger = pb_utils.Logger
-        self.model_config = json.loads(args["model_config"])
-        self.model_params = self.model_config.get("parameters", {})
-        default_hf_model = "meta-llama/Llama-2-7b-chat-hf"
-        #default_max_gen_length = "15"
-        # Check for user-specified model name in model config parameters
-        hf_model = self.model_params.get("huggingface_model", {}).get(
-            "string_value", default_hf_model
-        )
-        # NOTE: MOVED AS A REQUIRED INPUT  
-        #Check for user-specified max length in model config parameters
-        #self.max_output_length = int(
-        #    self.model_params.get("max_output_length", {}).get(
-        #        "string_value", default_max_gen_length
-        #    )
-        #)
-        #self.logger.log_info(f"Max sequence length: {self.max_output_length}")
-
-        self.logger.log_info(f"Loading HuggingFace model: {hf_model}...")
-        # Assume tokenizer available for same model
-        self.tokenizer = transformers.AutoTokenizer.from_pretrained(hf_model)
-        self.pipeline = transformers.pipeline(
-            "text-generation",
-            model=hf_model,
-            torch_dtype=torch.float16,
-            tokenizer=self.tokenizer,
-            device_map="auto",
-        )
-        self.pipeline.tokenizer.pad_token_id = self.tokenizer.eos_token_id
-
-    def execute(self, requests):
-        prompts = []
-        out_lengths = []
-        for request in requests:
-            input_tensor = pb_utils.get_input_tensor_by_name(request, "text_input")
-            max_out_tensor = pb_utils.get_input_tensor_by_name(request, "max_tokens")      
-            prompt = input_tensor.as_numpy()[0].decode()
-            out_length = max_out_tensor.as_numpy()[0]
-            #self.logger.log_info(f"Generating sequences of max output size: {out_length} for text_input: {prompt} ")
-            prompts.append(prompt)
-            out_lengths.append(out_length)
-
-        batch_size = len(prompts)
-        return self.generate(prompts, out_lengths, batch_size)
-
-    def generate(self, prompts, out_lengths, batch_size):    
-        sequences = self.pipeline(
-            prompts,
-            #max_length= out_lengths[0], #self.max_output_length,
-#The maximum length the generated tokens can have. Corresponds to the length of the input prompt + max_new_tokens. Its effect is overridden by max_new_tokens, if also set.
-#max_new_tokens (int, optional) — The maximum numbers of tokens to generate, ignoring the number of tokens in the prompt.
-            max_new_tokens = out_lengths[0],
-            pad_token_id=self.tokenizer.eos_token_id,
-            batch_size=batch_size,
-        )
-        responses = []
-        texts = []
-        for i, seq in enumerate(sequences):
-            output_tensors = []
-            text = seq[0]["generated_text"]
-            texts.append(text)
-            #self.logger.log_info(f"Output result : {text}")
-            tensor = pb_utils.Tensor("text_output", np.array(texts, dtype=np.object_))
-            output_tensors.append(tensor)
-            responses.append(pb_utils.InferenceResponse(output_tensors=output_tensors))
-
-        return responses
-
-    def finalize(self):
-        print("Cleaning up...")
-EOF
+cp /scratch/ai-pulse-nvidia-trt-llm/sources/triton/model/llama-python/model.py  /scratch/triton_model_repo/llama_7b/python/llama-python/1
 ```
-   - **Add the Model configuration**
-
+3. Add the Model configuration
 ```
-cat<<'EOF'>/scratch/triton_model_repo/llama_7b/python/llama-python/config.pbtxt
-# Triton backend to use
-backend: "python"
-
-# Hugging face model path. Parameters must follow this
-# key/value structure
-parameters: {
-  key: "huggingface_model",
-  value: {string_value: "/workspace/meta/hf-weights/7B-chat"}
-}
-
-# Triton should expect as input a single string of set
-# length named 'text_input' and a single INT value of set length named "max_output_length"
-input [
-  {
-    name: "text_input"
-    data_type: TYPE_STRING
-    dims: [ -1 ]
-  },
-  {
-    name: "max_tokens"
-    data_type: TYPE_UINT32
-    dims: [ -1 ]
-  }
-]
-
-# Triton should expect to respond with a single string
-# output of variable length named 'text_output'
-output [
-  {
-    name: "text_output"
-    data_type: TYPE_STRING
-    dims: [ -1 ]
-  }
-]
-instance_group [
-    {
-      count: 1
-      kind: KIND_GPU
-      gpus: [ 0 ]
-    }
-  ]
-
-EOF
+cp /scratch/ai-pulse-nvidia-trt-llm/sources/triton/model/llama-python/config.pbtxt  /scratch/triton_model_repo/llama_7b/python/llama-python/config.pbtxt
 ```
 
 ## Inferencing using Triton Inference Server
-### Launch the Server
+### Triton Server
+#### Setup 
 1. We use the docker command below to run the container based on the model repository created above
 ```
 sudo docker run   -d                                    \
@@ -275,7 +120,7 @@ sudo docker run   -d                                    \
         -it --rm                                        \
         --net host --shm-size=2g                        \
         --ulimit memlock=-1 --ulimit stack=67108864     \
-        --name triton_server_huggingface                \
+        --name triton_server_benchmark                \
         -v /scratch:/workspace                          \
         tritonserver-aipulse:23.10 tritonserver --model-repository=/workspace/triton_model_repo/llama_7b/python
 ```
@@ -284,172 +129,84 @@ If you built the engine with `--world_size X` where `X` is greater than 1, you w
 
 2. You can follow your container log using the command below ,  The server is ready when all the models' status are `READY`. The output should be similiar to this screenshot below : 
 ```
-sudo docker logs triton_server_huggingface -f
+sudo docker logs triton_server_benchmark -f
 ```
 ![triton server ready](./images/triton/tritonserver-ready.PNG)
 
+#### Validation
+We will rely on the [client docker image](01-setup.md#client) we have previously build.We will use the provided client script [end_to_end_streaming_client.py](../sources/benchmark/scripts/end_to_end_streaming_client.py) to send requests to our server using the Python and TensorRT-LLM models.
+
+
+
 ### Send Requests from a Client
 ```
-sudo docker run   -d                                    \
+sudo docker run                                        \
         --runtime=nvidia                                \
-        --gpus all                                      \
         -it --rm                                        \
         --net host --shm-size=2g                        \
         --ulimit memlock=-1 --ulimit stack=67108864     \
         --name triton_client                            \
         -v /scratch:/workspace                          \
-        tritonclient-aipulse:23.10 bash
+        tritonclient-aipulse:23.10 python /usr/local/src/benchmark/scripts/end_to_end_streaming_client.py -u localhost:8001 --model_name llama-python --max_tokens 100  --prompt "I am going to"
 ```
+![Astuce](images/common/astuce_icon.png) The -u option allows to specify the url of our server endpoint (Triton natively exposes grpc and HTTP respectively on 8001 and 8000).
+![](images/triton/tritonserver-validation.png)
+
+
+## Benchmark
+### CNN Dailymail Dataset
+In this section, we compare both model's performance on a subset of the [CNN Dailymail Dataset](https://huggingface.co/datasets/cnn_dailymail).We rely on [MLPerf Inference Benchmark Suite](https://github.com/mlcommons/inference/tree/master/language/gpt-j)) to download and generate `cnn_eval.json` file that will serve as input following these steps.
+
+1. Clone the repository
 ```
-#!/usr/bin/python
-
-import os
-import sys
-from functools import partial
-
-sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
-
-import argparse
-import queue
-import sys
-from datetime import datetime
-
-import numpy as np
-import tritonclient.grpc as grpcclient
-from tritonclient.utils import InferenceServerException
-from tritonclient.utils import np_to_triton_dtype
-
-
-class UserData:
-
-    def __init__(self):
-        self._completed_requests = queue.Queue()
-
-
-def callback(user_data, result, error):
-    if error:
-        user_data._completed_requests.put(error)
-    else:
-        user_data._completed_requests.put(result)
-        output = result.as_numpy('text_output')
-        print(output[0], flush=True)
-
-def prepare_tensor(name, input, protocol):
-        client_util = grpcclient
-        t = client_util.InferInput(name, input.shape,
-                                   np_to_triton_dtype(input.dtype))
-        t.set_data_from_numpy(input)
-        return t
-
-
-def test(triton_client, prompt, max_out, triton_model_name):
-    model_name = triton_model_name
-    
-    if model_name == "ensemble":
-        input0 = [[prompt]]
-        input0_data = np.array(input0).astype(object)
-        output0_len = np.ones_like(input0).astype(np.uint32) * max_out
-
-        bad_words_list = np.array([[""]], dtype=object)
-        stop_words_list = np.array([[""]], dtype=object)
-        inputs = [
-            prepare_tensor("text_input", input0_data, "grpc"),
-            prepare_tensor("max_tokens", output0_len, "grpc"),
-            prepare_tensor("bad_words", bad_words_list, "grpc"),
-            prepare_tensor("stop_words", stop_words_list,
-                                 "grpc")
-        ]
-
-    else:
-        input0 = [prompt]
-        input0_data = np.array(input0).astype(object)
-        input1 = [max_out]
-        input1_data = np.array(input1).astype(np.uint32)
-    
-        streaming = [[FLAGS.streaming]]
-        streaming_data = np.array(streaming, dtype=bool)
-    
-        inputs= [prepare_tensor("text_input", input0_data, "grpc"),
-                prepare_tensor("max_tokens", input1_data, "grpc"),
-                ]
-    
-    user_data = UserData()
-
-    # Establish stream
-    triton_client.start_stream(callback=partial(callback, user_data))
-    # Send request
-    triton_client.async_stream_infer(model_name, inputs)
-
-    #Wait for server to close the stream
-    triton_client.stop_stream()
-
-    # Parse the responses
-    while True:
-        try:
-            result = user_data._completed_requests.get(block=False)
-        except Exception:
-            break
-
-        if type(result) == InferenceServerException:
-            print("Received an error from server:")
-            print(result)
-        else:
-            result.as_numpy('text_output')            
-    return 
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-v',
-                        '--verbose',
-                        action="store_true",
-                        required=False,
-                        default=False,
-                        help='Enable verbose output')
-    parser.add_argument('-u',
-                        '--url',
-                        type=str,
-                        required=False,
-                        help='Inference server URL.')
-
-    parser.add_argument('-p',
-                        '--prompt',
-                        type=str,
-                        required=True,
-                        help='Input prompt.')
-    parser.add_argument('-o',
-                        '--max_tokens',
-                        type=int,
-                        required=True,
-                        help='Max num token output')
-    parser.add_argument('-m',
-                        '--model_name',
-                        type=str,
-                        required=True,
-                        help='Triton Model name.')
-    
-    parser.add_argument(
-        "-S",
-        "--streaming",
-        action="store_true",
-        required=False,
-        default=False,
-        help="Enable streaming mode. Default is False.",
-        )
-
-    FLAGS = parser.parse_args()
-    if FLAGS.url is None:
-        FLAGS.url = "192.168.1.3:8001"
-
-    try:
-        client = grpcclient.InferenceServerClient(url=FLAGS.url)
-    except Exception as e:
-        print("client creation failed: " + str(e))
-        sys.exit(1)
-
-    test(client, FLAGS.prompt, FLAGS.max_tokens, FLAGS.model_name)
-
+git -C /scratch clone https://github.com/mlcommons/inference.git
+```
+2. Install required dependencies
+```
+cd /scratch/inference/language/gpt-j
+pip install simplejson datasets transformers
+```
+3. Download dataset
+```
+python3 download_cnndm.py
+```
+4. Extract a subset  using jq 
+```
+mkdir /scratch/datasets
+cat /scratch/inference/language/gpt-j/data/cnn_eval.json | jq '.[800:1000]' > /scratch/datasets/mini_cnn_eval.json
 ```
 
+The truncated  `mini_cnn_eval.json` should have the following structure.
 
+```
+[
+  {
+      "input": "(CNN)Share, and your gift will be multiplied. That may sound like an esoteric adage, but when Zully Broussard selflessly decided to give one of her kidneys to a stranger, her generosity paired up with big data. It resulted in six [...] "",
+      "instruction": "Summarize the following news article:",
+      "output": "Zully Broussard decided to give a kidney to a stranger .\nA new computer program helped her donation spur transplants for six kidney patients ."
+  },
+  ....
+]    
+```
+
+### Performance Testing
+The [Identity Test Python VS TRT LLM script](../sources/benchmark/scripts/identity_test_python_vs_trtllm.py) will measure the total latency on multiple asynchronous request sent to the models 
+
+#### Launch on Python backend
+
+sudo docker run                                        \
+        --runtime=nvidia                                \
+        -it --rm                                        \
+        --net host --shm-size=2g                        \
+        --ulimit memlock=-1 --ulimit stack=67108864     \
+        --name triton_client                            \
+        -v /scratch:/workspace                          \
+        tritonclient-aipulse:23.10 python /usr/local/src/benchmark/scripts/identity_test_python_vs_trtllm.py -u localhost:8001 --max_input_len 100 --dataset /workspace/dataset/mini_cnn_eval.json -i grpc --model_name "llama-python"
+
+![](images/common/astuce_icon.png) We can see here than the targeted model on the inference server is the **llama-python** which correspond to the python backend.
+
+#### Launch on TensorRT-LLM ensemble
+
+![](images/common/astuce_icon.png) We can see here than the targeted model on the inference server is the **ensemble** which correspond to the TensorRT-LLM optimized one.
 
 # Add cleanup for container server

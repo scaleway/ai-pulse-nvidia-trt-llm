@@ -50,6 +50,12 @@ nvidia-smi
 As explained before, TensorRT-LLM will be used within Triton Inference Server to deploy the engines it has generated.
 In this chapter, we will explain how to deploy TensorRT-LLM backend within the Triton Inference Server and also how to get the TensorTRT Toolbox.
 
+## Prerequisites
+The first thing to do here is to clone the git repository associated to this tutorial in your VM.
+![Astuce Icon](images/common/astuce_icon.png) It will be used to get files (Dockerfile, python script) needed as part of this tutorial.
+```
+git -C /scratch clone https://github.com/scaleway/ai-pulse-nvidia-trt-llm.git
+```
 ## Triton Inference Server
 We will use here the [official docker image](https://catalog.ngc.nvidia.com/orgs/nvidia/containers/tritonserver) provided by Nvidia ?
 
@@ -84,75 +90,24 @@ git  -C /scratch/tensorrtllm_backend lfs pull
 #### Server
 At the moment of writing this document, triton docker image does not yet contains all the resources required to  launch TRT-LLM builded model.
 We need to add it within the official triton image using the process below : 
+![Astuce](images/common/astuce_icon.png)Associated Dockerfile is located [here](../sources/triton/docker/server/Dockerfile)
 
-1. Create a folder to save docker files
+1. Build the docker image
 ```
-mkdir /scratch/docker
-```
-2. Create the Dockerfile that will be used to deploy TRT-LLM based on the [Triton official docker image](https://catalog.ngc.nvidia.com/orgs/nvidia/containers/tritonserver)
-```
-cat<<'EOF'>/scratch/docker/Dockerfile.server
-ARG TAG=23.10-trtllm-python-py3
-FROM nvcr.io/nvidia/tritonserver:${TAG}
-
-ENV DEBIAN_FRONTEND noninteractive
-
-# Install TRT LLM
-RUN pip install --no-cache-dir \
-        git+https://github.com/NVIDIA/TensorRT-LLM.git
-
-# Dependency copy
-RUN mkdir /usr/local/lib/python3.10/dist-packages/tensorrt_llm/libs/ && \
-    cp /opt/tritonserver/backends/tensorrtllm/* /usr/local/lib/python3.10/dist-packages/tensorrt_llm/libs/
-
-RUN pip install  --no-cache-dir \
-    datasets==2.14.5 \
-    rouge_score~=0.1.2 \
-    sentencepiece~=0.1.99
-
-RUN mkdir -p /workspace
-
-WORKDIR /workspace
-EOF
+sudo docker build -t tritonserver-aipulse:23.10 -f /scratch/ai-pulse-nvidia-trt-llm/sources/triton/docker/server/Dockerfile .
 ```
 ![Astuce icon](./images/common/astuce_icon.png) Scaleway H100 instances are provided with docker pre-installed .
 
-3. Build the docker image
-```
-sudo docker build -t tritonserver-aipulse:23.10 -f /scratch/docker/Dockerfile.server .
-```
 
 #### Client
 To make an inference request to Triton Inference Server, we send HTTP or gRPC request to server endpoint.
 Triton offers some [Client libraries](https://github.com/triton-inference-server/client) that ease these interactions, we bundles these library using a docker image.
-1. Create the Dockerfile 
+![Astuce](images/common/astuce_icon.png)Associated Dockerfile is located [here](../sources/triton/docker/client/Dockerfile)
+
+1. Build the docker client image
 ```
-cat<<'EOF'>/scratch/docker/Dockerfile.client
-ARG TAG=23.10-trtllm-python-py3
-FROM nvcr.io/nvidia/tritonserver:${TAG}
-
-ENV DEBIAN_FRONTEND noninteractive
-
-RUN pip install  --no-cache-dir \
-    regex \
-    fire \
-    tritonclient[all] \
-    transformers==4.31.0 \
-    pandas \
-    tabulate \
-    datasets==2.14.5 \
-    rouge_score~=0.1.2 \
-    sentencepiece~=0.1.99
-
-RUN mkdir -p /workspace
-
-WORKDIR /workspace
-EOF
-```
-2. Build the docker client image
-
-```
-sudo docker build -t tritonclient-aipulse:23.10 -f /scratch/docker/Dockerfile.client .
+cd /scratch/ai-pulse-nvidia-trt-llm/sources
+sudo docker build -t tritonclient-aipulse:23.10 -f /scratch/ai-pulse-nvidia-trt-llm/sources/triton/docker/client/Dockerfile .
 ```
 
 ## Next Step
