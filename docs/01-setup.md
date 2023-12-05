@@ -37,7 +37,7 @@ Here we will show how you can connect to the Instance and validate that the
 ![Public IP retrieving](images/setup/public_ip_ssh.png)
 3. Connect to your instance using ssh client
 ```
-ssh ubuntu@$PUBLIC_IP
+ssh root@$PUBLIC_IP
 ```
 4. Validate that you have the right configuration (2*H100-PCIE) and right drivers using the nvidia-smi command
 ```

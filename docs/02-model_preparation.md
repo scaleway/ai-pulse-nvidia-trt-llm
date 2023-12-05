@@ -21,7 +21,7 @@ cd /scratch/meta/llama_models
 ../llama/download.sh
 ```
   - You will be asked for the url you have previously received by mail
-  - For this tutorial , we will work with llama 7B and 7B-chat (**7B,7B-chat**), but you can download all of them so that you can use them further
+  - For this tutorial , we will work with llama 7B , 7B-chat , 70B and 70B-chat (**7B,7B-chat,70B,70B-chat**), but you can download all of them so that you can use them further
 4. You should have the following tree folder in your **llama_models** folder depending on which models you have downloaded
 ```
 -rw-rw-r-- 1 ubuntu ubuntu   7020 Jul 15 00:06 LICENSE
@@ -43,10 +43,10 @@ For some of our commands, we will need to convert the weights from Meta Checkpoi
 mkdir -p /scratch/huggingface
 git -C /scratch/huggingface clone https://github.com/huggingface/transformers.git
 ```
-2. Run the conversion by using the **Triton server image created before** as it contains all the python dependencies required for the process. 
+2. Run the conversion of **llama-2-7b-chat** by using the **Triton server image created before** as it contains all the python dependencies required for the process. 
 ```
 cp /scratch/meta/llama_models/tokenizer.model  /scratch/meta/llama_models/llama-2-7b-chat/tokenizer.model
-sudo docker run -d                                      \
+sudo docker run s                                      \
         --runtime=nvidia                                \
         --gpus all                                      \
         -it --rm                                        \
@@ -58,6 +58,22 @@ sudo docker run -d                                      \
         --model_size 7B \
         --output_dir /workspace/meta/hf-weights/7B-chat
 ```
+3. The same with the **llama-2-70b** one 
+```
+cp /scratch/meta/llama_models/tokenizer.model  /scratch/meta/llama_models/llama-2-70b/tokenizer.model
+sudo docker run                                       \
+        --runtime=nvidia                                \
+        --gpus all                                      \
+        -it --rm                                        \
+        --net host --shm-size=2g                        \
+        --ulimit memlock=-1 --ulimit stack=67108864     \
+        -v /scratch:/workspace                          \
+        tritonserver-aipulse:23.10  python /workspace/huggingface/transformers/src/transformers/models/llama/convert_llama_weights_to_hf.py \
+        --input_dir /workspace/meta/llama_models/llama-2-70b \
+        --model_size 70B \
+        --output_dir /workspace/meta/hf-weights/70B
+```
+
 ![Astuce icon](./images/common/astuce_icon.png) We copy first the **tokenizer.model** to be aligned with structure needed by the converter.
 You can use 'docker logs' to fetch your temporary container log and check that everything run well.
 
