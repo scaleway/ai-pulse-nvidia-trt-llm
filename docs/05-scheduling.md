@@ -68,37 +68,7 @@ docker run                                       \
         --name triton_server_scheduling                \
         tritonserver-aipulse:23.10 tritonserver --model-repository=/workspace/triton_model_repo/llama_7b/fp16/no-inflight/
 ```
-2. Use The [identity_test_python_vs_trtllm.py](./scripts/identity_test_python_vs_trtllm.py) script to call the server and measure the latency
-
-```
-sudo docker run                                        \
-        --runtime=nvidia                                \
-        -it --rm                                        \
-        --net host --shm-size=2g                        \
-        --ulimit memlock=-1 --ulimit stack=67108864     \
-        --name triton_client                            \
-        -v /scratch:/workspace                          \
-        tritonclient-aipulse:23.10 python /usr/local/src/benchmark/scripts/identity_test_python_vs_trtllm.py -u localhost:8001 -i grpc  \
-        --max_input_len 2048 \
-        --op_stats_csv h100_llama-7b-fp16_V1.csv \
-        --dataset /workspace/datasets/mini_cnn_eval.json  \
-        --tokenizer_dir /workspace/meta/llama_models/ \
-        --model_name 
-        --tokenizer_type llama
-```
-
-```
-sudo docker run                                        \
-        --runtime=nvidia                                \
-        -it --rm                                        \
-        --net host --shm-size=2g                        \
-        --ulimit memlock=-1 --ulimit stack=67108864     \
-        --name triton_client                            \
-        -v /scratch:/workspace                          \
-        tritonclient-aipulse:23.10 python /usr/local/src/benchmark/scripts/identity_test.py -u localhost:8001  -i grpc \
-    -u localhost:8001 --model_name ensemble
-```
-
+2. We run the test using the [identity_test.py script provided by TensorRT](https://github.com/triton-inference-server/tensorrtllm_backend/blob/release/0.5.0/tools/inflight_batcher_llm/identity_test.py).
 
 ```
 sudo docker run                                        \
@@ -116,3 +86,106 @@ sudo docker run                                        \
     --tokenizer_dir /workspace/meta/llama_models/ \
     --tokenizer_type llama
 ```
+
+```
+Tokens per word:  1.471
+[INFO] Warm up for benchmarking.
+[INFO] Start benchmarking on 98 prompts.
+[INFO] Total Latency: 12154.388 ms
+[INFO] Total request latencies: 615980.253 ms
+979
++----------------------------+----------+
+|            Stat            |  Value   |
++----------------------------+----------+
+|        Requests/Sec        |   8.06   |
+|       OP tokens/sec        |  334.54  |
+|     Avg. latency (ms)      | 6285.51  |
+|      P99 latency (ms)      | 12114.01 |
+|      P90 latency (ms)      | 10760.40 |
+| Avg. IP tokens per request |  799.66  |
+| Avg. OP tokens per request |  41.49   |
+|   Avg. InFlight requests   |  50.74   |
+|     Total latency (ms)     | 12153.90 |
+|       Total requests       |  98.00   |
++----------------------------+----------+
+Expected op tokens 41.49
+
+```
+
+### Inflight Batching
+#### Model Repository
+1. We copy the model from the static batching
+```
+mkdir /scratch/triton_model_repo/llama_7b/fp16/inflight
+cp -R /scratch/triton_model_repo/llama_7b/fp16/no-inflight/* /scratch/triton_model_repo/llama_7b/fp16/inflight/.
+```
+2. We update the value of the gpt_model_type -> inflight_fused_batching
+```
+sed -i 's#V1#inflight_fused_batching#' /scratch/triton_model_repo/llama_7b/fp16/inflight/tensorrt_llm/config.pbtxt
+```
+### Run the Triton inference server
+1. Stop the previous container
+```
+docker container stop triton_server_scheduling
+```
+2. Run the Server using the following command
+```
+docker run                                       \
+        --runtime=nvidia                                \
+        --gpus all                                      \
+        -it --rm                                        \
+        --net host --shm-size=2g                        \
+        --ulimit memlock=-1 --ulimit stack=67108864     \
+        -v /scratch:/workspace                          \
+        -d                                              \
+        --name triton_server_scheduling_inflight                \
+        tritonserver-aipulse:23.10 tritonserver --model-repository=/workspace/triton_model_repo/llama_7b/fp16/inflight/
+```
+3. We run the test using the [identity_test.py script provided by TensorRT](https://github.com/triton-inference-server/tensorrtllm_backend/blob/release/0.5.0/tools/inflight_batcher_llm/identity_test.py).
+
+```
+sudo docker run                                        \
+        --runtime=nvidia                                \
+        -it --rm                                        \
+        --net host --shm-size=2g                        \
+        --ulimit memlock=-1 --ulimit stack=67108864     \
+        --name triton_client                            \
+        -v /scratch:/workspace                          \
+        tritonclient-aipulse:23.10 python /usr/local/src/benchmark/scripts/identity_test.py -u localhost:8001  -i grpc \
+    -u localhost:8001 \
+    --max_input_len 2048 \
+    --op_stats_csv h100_llama-7b-fp16_IFB.csv \
+    --dataset /workspace/datasets/mini_cnn_eval.json  \
+    --tokenizer_dir /workspace/meta/llama_models/ \
+    --tokenizer_type llama
+```
+4. The result should look like the following
+```
+Tokens per word:  1.471
+[INFO] Warm up for benchmarking.
+[INFO] Start benchmarking on 98 prompts.
+[INFO] Total Latency: 9315.312 ms
+[INFO] Total request latencies: 501834.1599999999 ms
+979
++----------------------------+---------+
+|            Stat            |  Value  |
++----------------------------+---------+
+|        Requests/Sec        |  10.52  |
+|       OP tokens/sec        | 436.51  |
+|     Avg. latency (ms)      | 5120.76 |
+|      P99 latency (ms)      | 9277.44 |
+|      P90 latency (ms)      | 8689.87 |
+| Avg. IP tokens per request | 799.66  |
+| Avg. OP tokens per request |  41.49  |
+|   Avg. InFlight requests   |  53.92  |
+|     Total latency (ms)     | 9314.86 |
+|       Total requests       |  98.00  |
++----------------------------+---------+
+Expected op tokens 41.49
+```
+## Next Step
+### Clean up
+```
+docker container stop triton_server_scheduling_inflight 
+```
+[Quantization](06-quantization.md)
