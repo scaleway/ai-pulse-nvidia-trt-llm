@@ -101,7 +101,7 @@ if __name__ == '__main__':
         required=False,
         help="Spedifty number of runs to get the average latency")
     
-    parser.add_argument('-m',
+    parser.add_argument('-model',
                         '--model_name',
                         type=str,
                         required=True,
