@@ -78,11 +78,41 @@ sudo docker run                                        \
         --ulimit memlock=-1 --ulimit stack=67108864     \
         --name triton_client                            \
         -v /scratch:/workspace                          \
+        tritonclient-aipulse:23.10 python /usr/local/src/benchmark/scripts/identity_test_python_vs_trtllm.py -u localhost:8001 -i grpc  \
+        --max_input_len 2048 \
+        --op_stats_csv h100_llama-7b-fp16_V1.csv \
+        --dataset /workspace/datasets/mini_cnn_eval.json  \
+        --tokenizer_dir /workspace/meta/llama_models/ \
+        --model_name 
+        --tokenizer_type llama
+```
+
+```
+sudo docker run                                        \
+        --runtime=nvidia                                \
+        -it --rm                                        \
+        --net host --shm-size=2g                        \
+        --ulimit memlock=-1 --ulimit stack=67108864     \
+        --name triton_client                            \
+        -v /scratch:/workspace                          \
+        tritonclient-aipulse:23.10 python /usr/local/src/benchmark/scripts/identity_test.py -u localhost:8001  -i grpc \
+    -u localhost:8001 --model_name ensemble
+```
+
+
+```
+sudo docker run                                        \
+        --runtime=nvidia                                \
+        -it --rm                                        \
+        --net host --shm-size=2g                        \
+        --ulimit memlock=-1 --ulimit stack=67108864     \
+        --name triton_client                            \
+        -v /scratch:/workspace                          \
         tritonclient-aipulse:23.10 python /usr/local/src/benchmark/scripts/identity_test.py -u localhost:8001  -i grpc \
     -u localhost:8001 \
     --max_input_len 2048 \
     --op_stats_csv h100_llama-7b-fp16_V1.csv \
-    --dataset tools/dataset/mini_cnn_eval.json  \
+    --dataset /workspace/datasets/mini_cnn_eval.json  \
     --tokenizer_dir /workspace/meta/llama_models/ \
     --tokenizer_type llama
 ```
