@@ -186,6 +186,7 @@ Expected op tokens 41.49
 ## Next Step
 ### Clean up
 ```
-docker container stop triton_server_scheduling_inflight 
+docker container stop triton_server_scheduling 
+docker container stop triton_server_scheduling_inflight
 ```
 [Quantization](06-quantization.md)
