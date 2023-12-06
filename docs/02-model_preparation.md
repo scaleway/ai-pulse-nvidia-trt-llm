@@ -46,7 +46,7 @@ git -C /scratch/huggingface clone https://github.com/huggingface/transformers.gi
 2. Run the conversion of **llama-2-7b-chat** by using the **Triton server image created before** as it contains all the python dependencies required for the process. 
 ```
 cp /scratch/meta/llama_models/tokenizer.model  /scratch/meta/llama_models/llama-2-7b-chat/tokenizer.model
-sudo docker run s                                      \
+ docker run s                                      \
         --runtime=nvidia                                \
         --gpus all                                      \
         -it --rm                                        \
@@ -61,7 +61,7 @@ sudo docker run s                                      \
 3. The same with the **llama-2-70b** one 
 ```
 cp /scratch/meta/llama_models/tokenizer.model  /scratch/meta/llama_models/llama-2-70b/tokenizer.model
-sudo docker run                                       \
+ docker run                                       \
         --runtime=nvidia                                \
         --gpus all                                      \
         -it --rm                                        \
@@ -97,7 +97,7 @@ pip install -r requirements.txt
 ```
 3. Run the `build.py` script to compile the TRT-LLM engines.
 ```
-sudo docker run -d                                      \
+ docker run -d                                      \
         --runtime=nvidia                                \
         --gpus all                                      \
         -it --rm                                        \
@@ -124,7 +124,7 @@ sudo docker run -d                                      \
 ### Testing
 We can test the output of the model with `run.py` located in the same llama examples folder.
 ```
-sudo docker run                                       \
+ docker run                                       \
         --runtime=nvidia                                \
         --gpus all                                      \
         -it --rm                                        \
