@@ -52,6 +52,8 @@ We will use `fp8` quantization to reduce the model size, see more in the [quanti
 As a result, we have 2 engines with half the size **of the original FP8** full model.
 ```
 root@trt-llm-instance:~# ls -lrtsh  /scratch/trt-engines/llama_70b/fp8/pp/2-gpu/
+```
+```
 total 65G
 4,0K -rw-r--r-- 1 root root 1,3K déc.   5 09:12 config.json
  33G -rw-r--r-- 1 root root  33G déc.   5 09:12 llama_float16_tp1_pp2_rank0.engine
@@ -87,9 +89,11 @@ This time build command will be modified adding `--world_size` and `--tp_size` p
 ```
 
 As a result, we have 2 engines with half the size **of the original full model**. 
-
 ```
 root@trt-llm-instance:~# ls -lrtsh  /scratch/trt-engines/llama_70b/fp16/tp/2-gpu
+```
+
+```
 total 129G
 4,0K -rw-r--r-- 1 root root 1,3K déc.   5 09:55 config.json
  65G -rw-r--r-- 1 root root  65G déc.   5 09:56 llama_float16_tp2_rank0.engine

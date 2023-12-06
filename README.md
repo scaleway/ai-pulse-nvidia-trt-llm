@@ -2,7 +2,7 @@
 
 # Efficient deployment and inference of GPU-accelerated LLMs
 ## Introduction
-**NVIDIA TensorRT-LLM**, which will be part of NVIDIA AI Enterprise, is an open-source software that delivers state-of-the-art performance for LLM serving using NVIDIA GPUs. It consists of the TensorRT deep learning compiler and includes optimized kernels, pre- and post-processing steps, and multi-GPU/multi-node communication primitives.​ Here you will find sources that have been used by Nvidia to introduce **Tensort-LLM** during [Scaleway AI Pulse 1st edition ](https://www.ai-pulse.eu/). 
+**NVIDIA TensorRT-LLM**, which will be part of NVIDIA AI Enterprise, is an open-source software that delivers state-of-the-art performance for LLM serving using NVIDIA GPUs. It consists of the TensorRT deep learning compiler and includes optimized kernels, pre- and post-processing steps, and multi-GPU/multi-node communication primitives.​ In this repository, you will find sources that have been used by Nvidia to introduce **Tensort-LLM** during [Scaleway AI Pulse 1st edition ](https://www.ai-pulse.eu/). 
 
 ## Guide Presentation
 The Workshop aims to introduce [TensorRT-LLM](https://github.com/NVIDIA/TensorRT-LLM)  features and capabilities and walk through steps needed to build and run your model in TensorRT-LLM on both single GPU and multi-GPUs.
