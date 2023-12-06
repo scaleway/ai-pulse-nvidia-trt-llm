@@ -1,3 +1,5 @@
+![ai pulse banner](./images/common/ai-pulse-banner.jpeg)
+
 # Parallelism in TensorRT-LLM
 ## Introduction
 Large Language Models can be huge and the GPU RAM can be a limitation. 
