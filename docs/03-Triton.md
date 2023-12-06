@@ -1,3 +1,5 @@
+![ai pulse banner](./images/common/ai-pulse-banner.jpeg)
+
 # Serving with Triton Inference Server
 ## Introduction
 The purpose here is to compare performances of the llama2-7b model serve by Triton when it has been optimized using TensorRT-LLM Vs huggingface python one. 

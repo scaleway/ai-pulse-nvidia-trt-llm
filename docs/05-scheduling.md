@@ -1,3 +1,5 @@
+![ai pulse banner](./images/common/ai-pulse-banner.jpeg)
+
 # Batching Scheduling
 For each of the steps here, we will need to create the Triton model repository as explained [here](03-Triton.md#models-repository). As a reminder, each of these runs needs to have the following folder structure:
 ```

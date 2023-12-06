@@ -1,3 +1,5 @@
+![ai pulse banner](./images/common/ai-pulse-banner.jpeg)
+
 # Model's Preparation
 
 ## Weights Download and Preparation

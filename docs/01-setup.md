@@ -1,3 +1,5 @@
+![ai pulse banner](./images/common/ai-pulse-banner.jpeg)
+
 # Setup
 ## Prerequisites
 - Scaleway Account with the following
@@ -32,7 +34,7 @@ terraform -chdir=sources/infrastructure init &&  terraform -chdir=sources/infras
 ```
 - This script will rely on terraform to deploy an **H100-2-80G** that will be reached using SSH connection.
 - A root volume of 500 GB will be deployed and a [scratch volume](https://www.scaleway.com/en/docs/compute/gpu/how-to/use-scratch-storage-h100-instances/)(i.e. :  NVMe disks which are fine-tuned for high-speed data access) of 3.9 Tb will be added to this instance.
-- The Scratch volume will be automatically mount on **/scratch-volume** mountpoint that will be used to store datasets further.
+- The Scratch volume will be automatically mount on **/scratch** mountpoint that will be used to store datasets further.
 
 ![Infrastructure Setup](images/setup/infra_setup.png)
 ## Validation
@@ -57,12 +59,13 @@ In this chapter, we will explain how to deploy TensorRT-LLM backend within the T
 
 ## Prerequisites
 The first thing to do here is to clone the git repository associated to this tutorial in your VM.
+
 ![Astuce Icon](images/common/astuce_icon.png) It will be used to get files (Dockerfile, python script) needed as part of this tutorial.
 ```
 git -C /scratch clone https://github.com/scaleway/ai-pulse-nvidia-trt-llm.git
 ```
 ## Triton Inference Server
-We will use here the [official docker image](https://catalog.ngc.nvidia.com/orgs/nvidia/containers/tritonserver) provided by Nvidia ?
+We will use here the [official docker image](https://catalog.ngc.nvidia.com/orgs/nvidia/containers/tritonserver) provided by Nvidia .
 
 
 ## TensorRT-LLM
@@ -94,26 +97,28 @@ git  -C /scratch/tensorrtllm_backend lfs pull
 ### TensorRT-LLM Backend integration in Triton
 #### Server
 At the moment of writing this document, triton docker image does not yet contains all the resources required to  launch TRT-LLM builded model.
-We need to add it within the official triton image using the process below : 
-![Astuce](images/common/astuce_icon.png)Associated Dockerfile is located [here](../sources/triton/docker/server/Dockerfile)
+We will built a new docker image based on the official triton image
+ using the script below : 
 
 1. Build the docker image
 ```
 docker build -t tritonserver-aipulse:23.10 -f /scratch/ai-pulse-nvidia-trt-llm/sources/triton/docker/server/Dockerfile .
 ```
+
 ![Astuce icon](./images/common/astuce_icon.png) Scaleway H100 instances are provided with docker pre-installed .
 
+![Astuce](images/common/astuce_icon.png)Associated Dockerfile is located [here](../sources/triton/docker/server/Dockerfile)
 
 #### Client
 To make an inference request to Triton Inference Server, we send HTTP or gRPC request to server endpoint.
 Triton offers some [Client libraries](https://github.com/triton-inference-server/client) that ease these interactions, we bundles these library using a docker image.
-![Astuce](images/common/astuce_icon.png)Associated Dockerfile is located [here](../sources/triton/docker/client/Dockerfile)
 
 1. Build the docker client image
 ```
 cd /scratch/ai-pulse-nvidia-trt-llm/sources
 docker build -t tritonclient-aipulse:23.10 -f /scratch/ai-pulse-nvidia-trt-llm/sources/triton/docker/client/Dockerfile .
 ```
+![Astuce](images/common/astuce_icon.png)Associated Dockerfile is located [here](../sources/triton/docker/client/Dockerfile)
 
 ## Next Steps
 [Model's weights download and preparation](02-model_preparation.md) 
