@@ -114,7 +114,7 @@ cp /scratch/ai-pulse-nvidia-trt-llm/sources/triton/model/llama-python/config.pbt
 ## Inferencing using Triton Inference Server
 ### Triton Server
 #### Setup 
-1. We use the docker command below to run the container based on the model repository created above
+1. We run a container based on the Triton Server Image we create before. We specify here the model repository -> /workspace/triton_model_repo/llama_7b/python
 ```
  docker run   -d                                    \
         --runtime=nvidia                                \
@@ -179,6 +179,9 @@ cat /scratch/inference/language/gpt-j/data/cnn_eval.json | jq '.[0:100]' > /scra
 ```
 
 The truncated  `mini_cnn_eval.json` should have the following structure.
+```
+less  /scratch/datasets/mini_cnn_eval.json
+```
 
 ```
 [
@@ -234,4 +237,4 @@ The speedup when TensorRT-LLM is used compared to the Python baseline in our exa
 ```
  docker container stop triton_server_benchmark
 ```
-[Parallelism in TensorRT-LLM](04_Parallelism.md)
+[Parallelism in TensorRT-LLM](04-parralelism.md)
