@@ -48,7 +48,7 @@ git -C /scratch/huggingface clone https://github.com/huggingface/transformers.gi
 2. Run the conversion of **llama-2-7b-chat** by using the **Triton server image created before** as it contains all the python dependencies required for the process. 
 ```
 cp /scratch/meta/llama_models/tokenizer.model  /scratch/meta/llama_models/llama-2-7b-chat/tokenizer.model
- docker run s                                      \
+ docker run                                     \
         --runtime=nvidia                                \
         --gpus all                                      \
         -it --rm                                        \
@@ -77,7 +77,6 @@ cp /scratch/meta/llama_models/tokenizer.model  /scratch/meta/llama_models/llama-
 ```
 
 ![Astuce icon](./images/common/astuce_icon.png) We copy first the **tokenizer.model** to be aligned with structure needed by the converter.
-You can use 'docker logs' to fetch your temporary container log and check that everything run well.
 
 
 ## TRT LLM compilation
@@ -99,7 +98,7 @@ pip install -r requirements.txt
 ```
 3. Run the `build.py` script to compile the TRT-LLM engines.
 ```
- docker run -d                                      \
+ docker run                                       \
         --runtime=nvidia                                \
         --gpus all                                      \
         -it --rm                                        \
@@ -139,3 +138,6 @@ We can test the output of the model with `run.py` located in the same llama exam
                 --input_text "How do I count in French ? 1 un"
 ```
 ![trt_llm_run.png](./images/model_preparation/trt_llm_run.png)
+
+## Next Steps
+[Triton Inference Server](03-Triton.md)
