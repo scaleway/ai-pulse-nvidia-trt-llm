@@ -39,17 +39,16 @@ resource "scaleway_instance_server" "gpu_instance" {
   ip_id                 = scaleway_instance_ip.gpu_instance_ip.id
   security_group_id     = scaleway_instance_security_group.gpu_access_sg.id
   additional_volume_ids = [scaleway_instance_volume.scratch_block_volume.id,scaleway_instance_volume.b_ssd_block_volume.id]
- /* user_data = {
+ user_data = {
     cloud-init = <<-EOT
     #cloud-config
     bootcmd:
       - apt-get update
-      - mkfs.ext4 /dev/sdb
-      - mkdir -p /scratch
-    mounts:
-      - [ "/dev/sdb", "/scratch", "ext4", "defaults,nofail", "0", "2" ]
+    runcmd:
+      - curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | sudo bash
+      - sudo apt-get install git-lfs
     EOT
-  }*/
+  }
 }
 
 
