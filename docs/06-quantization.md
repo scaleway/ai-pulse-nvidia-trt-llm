@@ -148,9 +148,24 @@ Expected op tokens 41.49
 ```
 
 ### FP8 Model
+#### Model Repository
+We need to first create the model repository that will be used by Triton to locate the model to launch. We will use the fp16 (1-gpu) as basis here.
+1. Create the fp8 model repository
+```
+mkdir -p /scratch/triton_model_repo/llama_7b/fp8
+```
+2. Copy the content of the fp16 inflight model into the fp8 one
+```
+cp -R /scratch/triton_model_repo/llama_7b/fp16/inflight/* /scratch/triton_model_repo/llama_7b/fp8/.
+```
+3. Update the value of the gpt_model_path
+```
+sed -i 's#/workspace/trt-engines/llama_7b/fp16/1-gpu#/workspace/trt-engines/llama_7b/fp8/1-gpu#' /scratch/triton_model_repo/llama_7b/fp8/tensorrt_llm/config.pbtxt
+``` 
+#### Run The Inference Server
 1. Stop the previous inference server
 ```
-sudo docker container stop triton_server_quantize_inflight
+docker container stop triton_server_quantize_inflight
 ```
 2. Run the triton inference server on the **FP8 model**
 ```
@@ -162,8 +177,8 @@ docker run                                       \
         --ulimit memlock=-1 --ulimit stack=67108864     \
         -v /scratch:/workspace                          \
         -d                                              \
-        --name triton_server_quantize_inflight                \
-        tritonserver-aipulse:23.10 tritonserver --model-repository=/workspace/triton_model_repo/llama_7b/fp8/inflight/
+        --name triton_server_quantize_fp8                \
+        tritonserver-aipulse:23.10 tritonserver --model-repository=/workspace/triton_model_repo/llama_7b/fp8
 ```
 3. We run the test using the [identity_test.py script provided by TensorRT](https://github.com/triton-inference-server/tensorrtllm_backend/blob/release/0.5.0/tools/inflight_batcher_llm/identity_test.py).
 
@@ -182,3 +197,30 @@ docker run                                        \
         --tokenizer_dir /workspace/meta/llama_models \
        --tokenizer_type llama
 ```
+
+3. The following result is output
+
+```
+Tokens per word:  1.471
+[INFO] Warm up for benchmarking.
+[INFO] Start benchmarking on 98 prompts.
+[INFO] Total Latency: 6854.241 ms
+[INFO] Total request latencies: 372122.97499999986 ms
+979
++----------------------------+---------+
+|            Stat            |  Value  |
++----------------------------+---------+
+|        Requests/Sec        |  14.30  |
+|       OP tokens/sec        | 593.25  |
+|     Avg. latency (ms)      | 3797.17 |
+|      P99 latency (ms)      | 6815.05 |
+|      P90 latency (ms)      | 6436.62 |
+| Avg. IP tokens per request | 799.66  |
+| Avg. OP tokens per request |  41.49  |
+|   Avg. InFlight requests   |  54.35  |
+|     Total latency (ms)     | 6853.77 |
+|       Total requests       |  98.00  |
++----------------------------+---------+
+Expected op tokens 41.49
+```
+The performace should be better with the quantized model than the fp16 one.

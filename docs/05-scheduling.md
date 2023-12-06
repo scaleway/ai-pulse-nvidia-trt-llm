@@ -113,7 +113,7 @@ Expected op tokens 41.49
 ```
 
 ### Inflight Batching
-#### Model Repository
+#### Models Repository
 1. We copy the model from the static batching
 ```
 mkdir /scratch/triton_model_repo/llama_7b/fp16/inflight
