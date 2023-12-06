@@ -6,7 +6,7 @@ Quantization is a technique to reduce the computational and memory costs of runn
 For the FP8 quantization, we build the engine using the command below. In our case, we apply FP8 quantization for the KV cache for further optimizations.
 1. Run the `build.py` script to compile the TRT-LLM engines.
 ```
-sudo docker run                                       \
+ docker run                                       \
         --runtime=nvidia                                \
         --gpus all                                      \
         -it --rm                                        \
@@ -52,7 +52,7 @@ total 6,6G
 ## Evaluation
 ### FP16 Model
 ```
-sudo docker run                                       \
+ docker run                                       \
         --runtime=nvidia                                \
         --gpus all                                      \
         -it --rm                                        \
@@ -71,7 +71,7 @@ Output: ", 2 deux, 3 trois, 4 quatre, 5 cinq, 6 six, 7 sept, 8 huit, 9 neuf, 10 
 ```
 ### FP8 Model
 ```
-sudo docker run                                       \
+ docker run                                       \
         --runtime=nvidia                                \
         --gpus all                                      \
         -it --rm                                        \
@@ -224,3 +224,12 @@ Tokens per word:  1.471
 Expected op tokens 41.49
 ```
 The performace should be better with the quantized model than the fp16 one.
+
+## Next Steps
+### Clean up
+Infrastructure and components clean up
+```
+terraform -chdir=sources/infrastructure destroy
+```
+### Nvidia TRT Presentation
+[TensorRT-LLM-AI-Pulse-Nov-2023](./nvidia/TensorRT-LLM-AI-Pulse-Nov-2023.pdf)

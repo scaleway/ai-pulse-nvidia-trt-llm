@@ -6,6 +6,11 @@
     - InstancesFullAccess
   - SSH Keys defined at project Level. See [here](https://www.scaleway.com/en/docs/console/project/how-to/create-ssh-key/)
 - Terraform >= 1.3.X See [here](https://www.terraform.io/downloads.html).
+
+## Disclaimer
+Components and architecture deployed here have been deployed in the context of training. This is not a production ready deployment as it is lacking some security features like VPC integration.
+
+**Cost** : *Price of H100*2GPU (5.76675/hour - 31/12/2023)*
 # Infrastructure Layer
 ## Deployment
 1. Configure your environment variables, so that Scaleway terraform providers can interact with Scaleway backbone :
@@ -94,7 +99,7 @@ We need to add it within the official triton image using the process below :
 
 1. Build the docker image
 ```
-sudo docker build -t tritonserver-aipulse:23.10 -f /scratch/ai-pulse-nvidia-trt-llm/sources/triton/docker/server/Dockerfile .
+docker build -t tritonserver-aipulse:23.10 -f /scratch/ai-pulse-nvidia-trt-llm/sources/triton/docker/server/Dockerfile .
 ```
 ![Astuce icon](./images/common/astuce_icon.png) Scaleway H100 instances are provided with docker pre-installed .
 
@@ -107,10 +112,10 @@ Triton offers some [Client libraries](https://github.com/triton-inference-server
 1. Build the docker client image
 ```
 cd /scratch/ai-pulse-nvidia-trt-llm/sources
-sudo docker build -t tritonclient-aipulse:23.10 -f /scratch/ai-pulse-nvidia-trt-llm/sources/triton/docker/client/Dockerfile .
+docker build -t tritonclient-aipulse:23.10 -f /scratch/ai-pulse-nvidia-trt-llm/sources/triton/docker/client/Dockerfile .
 ```
 
-## Next Step
+## Next Steps
 [Model's weights download and preparation](02-model_preparation.md) 
 
 # Resources

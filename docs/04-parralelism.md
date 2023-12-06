@@ -23,7 +23,7 @@ We will use `fp8` quantization to reduce the model size, see more in the [quanti
 
 1. Run the `build.py` script to compile the TRT-LLM engines.
 ```
-sudo docker run                                       \
+ docker run                                       \
         --runtime=nvidia                                \
         --gpus all                                      \
         -it --rm                                        \
@@ -61,7 +61,7 @@ total 65G
 ### Tensor Parallelism
 This time build command will be modified adding `--world_size` and `--tp_size` parameters.
 ```
-sudo docker run                                       \
+ docker run                                       \
         --runtime=nvidia                                \
         --gpus all                                      \
         -it --rm                                        \
@@ -102,7 +102,7 @@ total 129G
 We will serve here the previous tensor parrallelism model using TensorRT LLM script
 
 ```
-sudo docker run                                       \
+ docker run                                       \
         --runtime=nvidia                                \
         --gpus all                                      \
         -it --rm                                        \
@@ -209,7 +209,7 @@ Output: 2 deux 3 trois 4 quatre 5 cinq 6 six 7 sept 8 huit 9 neuf 10 dix 11 onze
 ```
 
 
-## Next Step
+## Next Steps
 ### Cleanup
 - Kill the SSH session with the inference server running and kill the container
 ```

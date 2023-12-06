@@ -114,7 +114,7 @@ cp /scratch/ai-pulse-nvidia-trt-llm/sources/triton/model/llama-python/config.pbt
 #### Setup 
 1. We use the docker command below to run the container based on the model repository created above
 ```
-sudo docker run   -d                                    \
+ docker run   -d                                    \
         --runtime=nvidia                                \
         --gpus all                                      \
         -it --rm                                        \
@@ -129,7 +129,7 @@ If you built the engine with `--world_size X` where `X` is greater than 1, you w
 
 2. You can follow your container log using the command below ,  The server is ready when all the models' status are `READY`. The output should be similiar to this screenshot below : 
 ```
-sudo docker logs triton_server_benchmark -f
+ docker logs triton_server_benchmark -f
 ```
 ![triton server ready](./images/triton/tritonserver-ready.PNG)
 
@@ -140,7 +140,7 @@ We will rely on the [client docker image](01-setup.md#client) we have previously
 
 ### Send Requests from a Client
 ```
-sudo docker run                                        \
+ docker run                                        \
         --runtime=nvidia                                \
         -it --rm                                        \
         --net host --shm-size=2g                        \
@@ -194,7 +194,7 @@ The [Identity Test Python VS TRT LLM script](../sources/benchmark/scripts/identi
 
 #### Launch on Python backend
 ```
-sudo docker run                                        \
+ docker run                                        \
         --runtime=nvidia                                \
         -it --rm                                        \
         --net host --shm-size=2g                        \
@@ -209,7 +209,7 @@ sudo docker run                                        \
 
 #### Launch on TensorRT-LLM ensemble
 ```
-sudo docker run                                        \
+ docker run                                        \
         --runtime=nvidia                                \
         -it --rm                                        \
         --net host --shm-size=2g                        \
@@ -227,9 +227,9 @@ The speedup when TensorRT-LLM is used compared to the Python baseline in our exa
 
 
 
-## Next Step
+## Next Steps
 ### Cleanup
 ```
-sudo docker container stop triton_server_benchmark
+ docker container stop triton_server_benchmark
 ```
 [Parallelism in TensorRT-LLM](04_Parallelism.md)

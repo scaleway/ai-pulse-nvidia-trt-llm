@@ -71,7 +71,7 @@ docker run                                       \
 2. We run the test using the [identity_test.py script provided by TensorRT](https://github.com/triton-inference-server/tensorrtllm_backend/blob/release/0.5.0/tools/inflight_batcher_llm/identity_test.py).
 
 ```
-sudo docker run                                        \
+ docker run                                        \
         --runtime=nvidia                                \
         -it --rm                                        \
         --net host --shm-size=2g                        \
@@ -144,7 +144,7 @@ docker run                                       \
 3. We run the test using the [identity_test.py script provided by TensorRT](https://github.com/triton-inference-server/tensorrtllm_backend/blob/release/0.5.0/tools/inflight_batcher_llm/identity_test.py).
 
 ```
-sudo docker run                                        \
+ docker run                                        \
         --runtime=nvidia                                \
         -it --rm                                        \
         --net host --shm-size=2g                        \
@@ -183,7 +183,7 @@ Tokens per word:  1.471
 +----------------------------+---------+
 Expected op tokens 41.49
 ```
-## Next Step
+## Next Steps
 ### Clean up
 ```
 docker container stop triton_server_scheduling 
