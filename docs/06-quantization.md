@@ -34,6 +34,8 @@ For the FP8 quantization, we build the engine using the command below. In our ca
 **FP16**
 ```
 root@trt-llm-instance:/scratch/triton_model_repo/llama_7b# ls -lrsth /scratch/trt-engines/llama_7b/fp16/1-gpu/
+```
+```
 total 13G
 4,0K -rw-r--r-- 1 root root 1,3K déc.   5 08:27 config.json
  13G -rw-r--r-- 1 root root  13G déc.   5 08:27 llama_float16_tp1_rank0.engine
