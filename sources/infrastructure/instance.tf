@@ -20,12 +20,6 @@ resource "scaleway_instance_volume" "scratch_block_volume" {
   type       = "scratch"
   size_in_gb = 3000
 }
-resource "scaleway_instance_volume" "b_ssd_block_volume" {
-  zone = var.gpu_zone
-  type       = "b_ssd"
-  size_in_gb = 3000
-}
-
 resource "scaleway_instance_server" "gpu_instance" {
   zone = var.gpu_zone
   name  = "trt-llm-instance"
@@ -34,11 +28,11 @@ resource "scaleway_instance_server" "gpu_instance" {
   tags  = local.resources_tags
   root_volume {
     volume_type = "b_ssd"
-    size_in_gb  = 500
+    size_in_gb  = 300
   }
   ip_id                 = scaleway_instance_ip.gpu_instance_ip.id
   security_group_id     = scaleway_instance_security_group.gpu_access_sg.id
-  additional_volume_ids = [scaleway_instance_volume.scratch_block_volume.id,scaleway_instance_volume.b_ssd_block_volume.id]
+  additional_volume_ids = [scaleway_instance_volume.scratch_block_volume.id]
  user_data = {
     cloud-init = <<-EOT
     #cloud-config
