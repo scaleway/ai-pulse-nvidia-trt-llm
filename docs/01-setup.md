@@ -12,7 +12,7 @@
 ## Disclaimer
 Components and architecture deployed here have been deployed in the context of training. This is not a production ready deployment as it is lacking some security features like VPC integration.
 
-**Cost** : *Price of H100*2GPU (5.76675/hour - 31/12/2023)*
+**Cost** : *Price of H100-2GPU (5.76675/hour - 31/12/2023)*
 # Infrastructure Layer
 ## Deployment
 1. Configure your environment variables, so that Scaleway terraform providers can interact with Scaleway backbone :
@@ -23,7 +23,7 @@ Components and architecture deployed here have been deployed in the context of t
 
 ![Astuce icon](./images/common/astuce_icon.png)  See [here](https://registry.terraform.io/providers/scaleway/scaleway/latest/docs#environment-variables) for more details.
 
-2. Configure your terraform variables by renaming the infrastructure/sources/terraform.tfvars.template -> sources/infrastructure/terraform.tfvars
+2. Configure your terraform variables by renaming the sources/infrastructure/terraform.tfvars.template -> sources/infrastructure/terraform.tfvars
 - Update the users_ips_lists that is used to restrict  access to your instance to a list of IP.
 
 ![Astuce icon](./images/common/astuce_icon.png) You can set this value at 0.0.0.0 to grant access whatever the IP.
