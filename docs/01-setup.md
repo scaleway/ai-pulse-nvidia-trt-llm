@@ -24,9 +24,9 @@ Components and architecture deployed here have been deployed in the context of t
 ![Astuce icon](./images/common/astuce_icon.png)  See [here](https://registry.terraform.io/providers/scaleway/scaleway/latest/docs#environment-variables) for more details.
 
 2. Configure your terraform variables by renaming the sources/infrastructure/terraform.tfvars.template -> sources/infrastructure/terraform.tfvars
-- Update the users_ips_lists that is used to restrict  access to your instance to a list of IP.
+- Update the users_ips_lists that is used to restrict  access to your instance to a list of IP using a CIDR notation (e.g.: "141.124.11.12/32" , "95.121.123.14/32").
 
-![Astuce icon](./images/common/astuce_icon.png) You can set this value at 0.0.0.0 to grant access whatever the IP.
+![Astuce icon](./images/common/astuce_icon.png) You can set this value at "0.0.0.0/0" to grant access whatever the IP.
 
 3. Deploy the infrastructure using the command below
 ```
@@ -38,15 +38,15 @@ terraform -chdir=sources/infrastructure init &&  terraform -chdir=sources/infras
 
 ![Infrastructure Setup](images/setup/infra_setup.png)
 ## Validation
-Here we will show how you can connect to the Instance and validate that the 
+Here we will show how you can connect to the Instance and validate the install (You could also retrieve this IP from the terraform output) 
 1. Connect to your Scaleway Console 
 2. Retrieve your instance public ip from the console
 ![Public IP retrieving](images/setup/public_ip_ssh.png)
-3. Connect to your instance using ssh client
+1. Connect to your instance using ssh client
 ```
 ssh root@$PUBLIC_IP
 ```
-4. Validate that you have the right configuration (2*H100-PCIE) and right drivers using the nvidia-smi command
+1. Validate that you have the right configuration (2*H100-PCIE) and right drivers using the nvidia-smi command
 ```
 nvidia-smi
 ```

@@ -47,6 +47,7 @@ resource "scaleway_instance_server" "gpu_instance" {
 
 
 resource "scaleway_instance_security_group" "gpu_access_sg" {
+  name = "gpu_access"
   zone = var.gpu_zone
   inbound_default_policy  = "drop"
   outbound_default_policy = "accept"
@@ -55,7 +56,7 @@ resource "scaleway_instance_security_group" "gpu_access_sg" {
     for_each = var.users_ips_lists
     content {
       action   = "accept"
-      ip_range = "${inbound_rule.value}/32"
+      ip_range = "${inbound_rule.value}"
     }
   }
 }
