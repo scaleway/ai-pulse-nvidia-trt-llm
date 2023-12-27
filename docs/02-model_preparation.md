@@ -92,11 +92,7 @@ For this step, we will use script provided  in TRT-LLM from the [official github
 ```
 cd /scratch/tensorrtllm_backend/tensorrt_llm/examples/llama/
 ```
-2. Install python dependencies
-```
-pip install -r requirements.txt
-```
-3. Run the `build.py` script to compile the TRT-LLM engines.
+2. Run the `build.py` script to compile the TRT-LLM engines.
 ```
  docker run                                       \
         --runtime=nvidia                                \

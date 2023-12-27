@@ -79,7 +79,12 @@ We could have downloaded directly TRT-LLM from the [official github repository](
 ```
 git -C /scratch clone https://github.com/triton-inference-server/tensorrtllm_backend.git  
 ```
-2. Download Tensor RT LLM through the Git modules
+2. Checkout the right version
+```
+cd /scratch/tensorrtllm_backend && git checkout release/0.5.0
+```
+
+3. Download Tensor RT LLM through the Git modules
 ```
 cat <<'EOF'> /scratch/tensorrtllm_backend/.gitmodules 
 [submodule "tensorrt_llm"]
