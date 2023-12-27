@@ -111,7 +111,13 @@ docker run                                       \
         --name triton_server_quantize_inflight                \
         tritonserver-aipulse:23.10 tritonserver --model-repository=/workspace/triton_model_repo/llama_7b/fp16/inflight/
 ```
-2. We run the test using the [identity_test.py script provided by TensorRT](https://github.com/triton-inference-server/tensorrtllm_backend/blob/release/0.5.0/tools/inflight_batcher_llm/identity_test.py).
+2. The following command can be run to ensure that the Triton server is up 
+
+```
+docker logs -f triton_server_quantize_inflight
+```
+
+3. We run the test using the [identity_test.py script provided by TensorRT](https://github.com/triton-inference-server/tensorrtllm_backend/blob/release/0.5.0/tools/inflight_batcher_llm/identity_test.py).
 
 ```
 docker run                                        \
@@ -173,6 +179,7 @@ sed -i 's#/workspace/trt-engines/llama_7b/fp16/1-gpu#/workspace/trt-engines/llam
 ```
 docker container stop triton_server_quantize_inflight
 ```
+
 2. Run the triton inference server on the **FP8 model**
 ```
 docker run                                       \
@@ -186,7 +193,14 @@ docker run                                       \
         --name triton_server_quantize_fp8                \
         tritonserver-aipulse:23.10 tritonserver --model-repository=/workspace/triton_model_repo/llama_7b/fp8
 ```
-3. We run the test using the [identity_test.py script provided by TensorRT](https://github.com/triton-inference-server/tensorrtllm_backend/blob/release/0.5.0/tools/inflight_batcher_llm/identity_test.py).
+
+3. The following command can be run to ensure that the Triton server is up 
+
+```
+docker logs -f triton_server_quantize_fp8
+```
+
+4. We run the test using the [identity_test.py script provided by TensorRT](https://github.com/triton-inference-server/tensorrtllm_backend/blob/release/0.5.0/tools/inflight_batcher_llm/identity_test.py).
 
 ```
 docker run                                        \
@@ -229,11 +243,11 @@ Tokens per word:  1.471
 +----------------------------+---------+
 Expected op tokens 41.49
 ```
-The performace should be better with the quantized model than the fp16 one.
+The performance should be better with the quantized model than the fp16 one.
 
 ## Next Steps
 ### Clean up
-Infrastructure and components clean up
+From the local computer , clean up the infrastructure and components
 ```
 terraform -chdir=sources/infrastructure destroy
 ```
