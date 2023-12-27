@@ -32,7 +32,7 @@ Refer to TensorRT-LLM [documentation](https://github.com/NVIDIA/TensorRT-LLM/blo
 ```
 mkdir -p /scratch/triton_model_repo/llama_7b/fp16/no-inflight
 ```
-2. Initiates the  folder with template files from tensorrtllm_backend
+2. Initiates the  folder with model template files from tensorrtllm_backend
 ```
 cp -R /scratch/tensorrtllm_backend/all_models/inflight_batcher_llm/* /scratch/triton_model_repo/llama_7b/fp16/no-inflight/.
 ```
@@ -68,9 +68,14 @@ docker run                                       \
         -v /scratch:/workspace                          \
         -d                                              \
         --name triton_server_scheduling                \
-        tritonserver-aipulse:23.10 tritonserver --model-repository=/workspace/triton_model_repo/llama_7b/fp16/no-inflight/
+        tritonserver-aipulse:23.10 tritonserver --model-repository=/workspace/triton_model_repo/llama_7b/fp16/no-inflight
 ```
-2. We run the test using the [identity_test.py script provided by TensorRT](https://github.com/triton-inference-server/tensorrtllm_backend/blob/release/0.5.0/tools/inflight_batcher_llm/identity_test.py).
+2. The following command can be run to ensure that the Triton server is up 
+
+```
+docker logs -f triton_server_scheduling
+```
+3. We run the test using the [identity_test.py script provided by TensorRT](https://github.com/triton-inference-server/tensorrtllm_backend/blob/release/0.5.0/tools/inflight_batcher_llm/identity_test.py).
 
 ```
  docker run                                        \
@@ -188,7 +193,6 @@ Expected op tokens 41.49
 ## Next Steps
 ### Clean up
 ```
-docker container stop triton_server_scheduling 
 docker container stop triton_server_scheduling_inflight
 ```
 [Quantization](06-quantization.md)

@@ -61,7 +61,7 @@ triton_model_repo/llama_7b/fp16/no-inflight/
 ```
 mkdir -p /scratch/triton_model_repo/llama_7b/python
 ```
-2. Initiates the python folder with template files from tensorrtllm_backend
+2. Initiates the python folder with template model files from tensorrtllm_backend
 ```
 cp -R /scratch/tensorrtllm_backend/all_models/inflight_batcher_llm/* /scratch/triton_model_repo/llama_7b/python/.
 ```
@@ -136,7 +136,7 @@ If you built the engine with `--world_size X` where `X` is greater than 1, you w
 ![triton server ready](./images/triton/tritonserver-ready.PNG)
 
 #### Validation
-We will rely on the [client docker image](01-setup.md#client) we have previously build.We will use the provided client script [end_to_end_streaming_client.py](../sources/benchmark/scripts/end_to_end_streaming_client.py) to send requests to our server using the Python and TensorRT-LLM models.
+We will rely on the [client docker image](01-setup.md#client) we have previously build. We will use the provided client script [end_to_end_streaming_client.py](../sources/benchmark/scripts/end_to_end_streaming_client.py) to send requests to our server using the Python and TensorRT-LLM models.
 
 
 
