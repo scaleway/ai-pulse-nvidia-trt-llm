@@ -120,7 +120,7 @@ Triton offers some [Client libraries](https://github.com/triton-inference-server
 
 1. Build the docker client image
 ```
-cd /scratch/ai-pulse-nvidia-trt-llm/sources
+cd /scratch/ai-pulse-nvidia-trt-llm/sources &&
 docker build -t tritonclient-aipulse:23.10 -f /scratch/ai-pulse-nvidia-trt-llm/sources/triton/docker/client/Dockerfile .
 ```
 ![Astuce](images/common/astuce_icon.png)Associated Dockerfile is located [here](../sources/triton/docker/client/Dockerfile)

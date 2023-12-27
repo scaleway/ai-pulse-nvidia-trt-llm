@@ -6,7 +6,7 @@ ENV DEBIAN_FRONTEND noninteractive
 RUN pip install  --no-cache-dir \
     regex \
     fire \
-    tritonclient[all] \
+    tritonclient[all]==2.39.0 \
     transformers==4.31.0 \
     pandas \
     tabulate \
