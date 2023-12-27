@@ -5,7 +5,7 @@ ENV DEBIAN_FRONTEND noninteractive
 
 # Install TRT LLM
 RUN pip install --no-cache-dir \
-        git+https://github.com/NVIDIA/TensorRT-LLM.git
+        git+https://github.com/NVIDIA/TensorRT-LLM.git@release/0.5.0
 
 # Dependency copy
 RUN mkdir /usr/local/lib/python3.10/dist-packages/tensorrt_llm/libs/ && \
