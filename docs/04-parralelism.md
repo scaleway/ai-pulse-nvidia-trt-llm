@@ -51,16 +51,16 @@ We will use `fp8` quantization to reduce the model size, see more in the [quanti
 ```
 As a result, we have 2 engines with half the size **of the original FP8** full model.
 ```
-root@trt-llm-instance:~# ls -lrtsh  /scratch/trt-engines/llama_70b/fp8/pp/2-gpu/
+ls -lrtsh  /scratch/trt-engines/llama_70b/fp8/pp/2-gpu/
 ```
 ```
 total 65G
-4,0K -rw-r--r-- 1 root root 1,3K déc.   5 09:12 config.json
- 33G -rw-r--r-- 1 root root  33G déc.   5 09:12 llama_float16_tp1_pp2_rank0.engine
- 33G -rw-r--r-- 1 root root  33G déc.   5 09:40 llama_float16_
-236K -rw-r--r-- 1 root root 236K déc.   5 09:40 model.cache
+4,0K -rw-r--r-- 1 root root 1,3K déc.  27 15:37 config.json
+ 33G -rw-r--r-- 1 root root  33G déc.  27 15:38 llama_float16_tp1_pp2_rank0.engine
+ 33G -rw-r--r-- 1 root root  33G déc.  27 16:06 llama_float16_tp1_pp2_rank1.engine
+236K -rw-r--r-- 1 root root 236K déc.  27 16:06 model.cache
 ```
-![Astuce Icon](images/common/astuce_icon.png) This operation could take up to 20 mn.
+![Astuce Icon](images/common/astuce_icon.png)**This operation could take up to 40 mn.**
 
 ### Tensor Parallelism
 This time build command will be modified adding `--world_size` and `--tp_size` parameters.
@@ -90,18 +90,18 @@ This time build command will be modified adding `--world_size` and `--tp_size` p
 
 As a result, we have 2 engines with half the size **of the original full model**. 
 ```
-root@trt-llm-instance:~# ls -lrtsh  /scratch/trt-engines/llama_70b/fp16/tp/2-gpu
+ls -lrtsh  /scratch/trt-engines/llama_70b/fp16/tp/2-gpu
 ```
 
 ```
 total 129G
-4,0K -rw-r--r-- 1 root root 1,3K déc.   5 09:55 config.json
- 65G -rw-r--r-- 1 root root  65G déc.   5 09:56 llama_float16_tp2_rank0.engine
- 65G -rw-r--r-- 1 root root  65G déc.   5 10:02 llama_float16_tp2_rank1.engine
- 48K -rw-r--r-- 1 root root  47K déc.   5 10:02 model.cache
+4,0K -rw-r--r-- 1 root root 1,3K déc.  27 16:18 config.json
+ 65G -rw-r--r-- 1 root root  65G déc.  27 16:20 llama_float16_tp2_rank0.engine
+ 65G -rw-r--r-- 1 root root  65G déc.  27 16:26 llama_float16_tp2_rank1.engine
+ 48K -rw-r--r-- 1 root root  47K déc.  27 16:26 model.cache
 ```
 
-![Astuce Icon](images/common/astuce_icon.png) This operation could take up to 20 mn.
+![Astuce Icon](images/common/astuce_icon.png)**This operation could take up to 40 mn.**
 
 ## Serve
 ### Using TensorRT-LLM run script
@@ -189,21 +189,22 @@ python /workspace/tensorrtllm_backend/scripts/launch_triton_server.py --world_si
 #### Test with Triton client
 1. Open a new SSH Terminal to your server
 2. Here we will run a simple client prompt and get the result using the script [inflight_batcher_llm_client.py](https://github.com/triton-inference-server/tensorrtllm_backend/blob/release/0.5.0/inflight_batcher_llm/client/inflight_batcher_llm_client.py) available on TensorRT-LLM Backend github.
-   - Install dependencies 
 ```
-cd /scratch/tensorrtllm_backend
-pip install -r requirements.txt
-pip install sentencepiece
-``` 
-- Run the command
-```
-python3 /scratch/tensorrtllm_backend/inflight_batcher_llm/client/inflight_batcher_llm_client.py \
+docker run                                       \
+        --runtime=nvidia                                \
+        --gpus all                                      \
+        -it --rm                                        \
+        --net host --shm-size=2g                        \
+        --ulimit memlock=-1 --ulimit stack=67108864     \
+        -v /scratch:/workspace                          \
+        --name triton_client_parallelism                \
+        tritonclient-aipulse:23.10 python /workspace/tensorrtllm_backend/inflight_batcher_llm/client/inflight_batcher_llm_client.py \
     -u localhost:8001 \
-    --tokenizer_dir /scratch/meta/hf-weights/70B \
+    --tokenizer_dir /workspace/meta/hf-weights/70B \
     --request-output-len 200 \
     --text "How do I count in French ? 1 un "
 ```
-3. The results are listed below
+3. The output should look like the following
 ```
 None of PyTorch, TensorFlow >= 2.0, or Flax have been found. Models won't be available and only tokenizers, configuration and file/data utilities can be used.
 =========
