@@ -1,7 +1,7 @@
 ![ai pulse banner](./images/common/ai-pulse-banner.jpeg)
 
 # Batching Scheduling
-For each of the steps here, we will need to create the Triton model repository as explained [here](03-Triton.md#models-repository). As a reminder, each of these runs needs to have the following folder structure:
+For each of the steps here, we will need to create the Triton model repository as explained [here](03-Triton.md#models-repository). 
 ```
 ├── ensemble
 │   ├── 1
@@ -55,7 +55,7 @@ sed -i 's#${max_tokens_in_paged_kv_cache}##' /scratch/triton_model_repo/llama_7b
 sed -i 's#${batch_scheduler_policy}#guaranteed_completion#' /scratch/triton_model_repo/llama_7b/fp16/no-inflight/tensorrt_llm/config.pbtxt
 ```
 
-### Run the Triton inference server
+#### Run the Triton inference server
 1. Run the Server using the following command
    
 ```
@@ -130,7 +130,7 @@ cp -R /scratch/triton_model_repo/llama_7b/fp16/no-inflight/* /scratch/triton_mod
 ```
 sed -i 's#V1#inflight_fused_batching#' /scratch/triton_model_repo/llama_7b/fp16/inflight/tensorrt_llm/config.pbtxt
 ```
-### Run the Triton inference server
+#### Run the Triton inference server
 1. Stop the previous container
 ```
 docker container stop triton_server_scheduling
@@ -148,7 +148,13 @@ docker run                                       \
         --name triton_server_scheduling_inflight                \
         tritonserver-aipulse:23.10 tritonserver --model-repository=/workspace/triton_model_repo/llama_7b/fp16/inflight/
 ```
-3. We run the test using the [identity_test.py script provided by TensorRT](https://github.com/triton-inference-server/tensorrtllm_backend/blob/release/0.5.0/tools/inflight_batcher_llm/identity_test.py).
+3. The following command can be run to ensure that the Triton server is up 
+
+```
+docker logs -f triton_server_scheduling_inflight
+```
+
+4. We run the test using the [identity_test.py script provided by TensorRT](https://github.com/triton-inference-server/tensorrtllm_backend/blob/release/0.5.0/tools/inflight_batcher_llm/identity_test.py).
 
 ```
  docker run                                        \
