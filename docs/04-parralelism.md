@@ -18,8 +18,8 @@ The purpose of this part is to show it in action on Llama-70B (130GB for the mod
 ### Pipeline Parallelism
 We need the build command again, and add `--world_size` and `--pp_size` parameters. 
 
-Note: We need some more parameters here, because of PP using some more GPU memory than just the half of the model size. 
-As we are already almost using the full GPU, it won't be possible to fit on the H100 80G. 
+Note: We need more parameters here, because of Pipeline Parallelism using more GPU memory than just the half of the model size. 
+As we are already almost using the full GPU, it won't be possible to fit on one H100 80G. 
 
 We will use `fp8` quantization to reduce the model size, see more in the [quantization](./06_quantization.md) section.
 
@@ -51,7 +51,7 @@ We will use `fp8` quantization to reduce the model size, see more in the [quanti
 ```
 As a result, we have 2 engines with half the size **of the original FP8** full model.
 ```
-ls -lrtsh  /scratch/trt-engines/llama_70b/fp8/pp/2-gpu/
+ls -lsh  /scratch/trt-engines/llama_70b/fp8/pp/2-gpu/
 ```
 ```
 total 65G
@@ -63,7 +63,7 @@ total 65G
 ![Astuce Icon](images/common/astuce_icon.png)**This operation could take up to 40 mn.**
 
 ### Tensor Parallelism
-This time build command will be modified adding `--world_size` and `--tp_size` parameters.
+This time build command will be modified adding `--tp_size` in addition of `--world_size` parameters.
 ```
  docker run                                       \
         --runtime=nvidia                                \
@@ -90,7 +90,7 @@ This time build command will be modified adding `--world_size` and `--tp_size` p
 
 As a result, we have 2 engines with half the size **of the original full model**. 
 ```
-ls -lrtsh  /scratch/trt-engines/llama_70b/fp16/tp/2-gpu
+ls -lsh  /scratch/trt-engines/llama_70b/fp16/tp/2-gpu
 ```
 
 ```
@@ -101,7 +101,7 @@ total 129G
  48K -rw-r--r-- 1 root root  47K déc.  27 16:26 model.cache
 ```
 
-![Astuce Icon](images/common/astuce_icon.png)**This operation could take up to 40 mn.**
+![Astuce Icon](images/common/astuce_icon.png)**This operation could take up to 20 mn.**
 
 ## Serve
 ### Using TensorRT-LLM run script
@@ -129,8 +129,8 @@ Output: "2 deux 3 trois 4 quatre 5 cinq 6 six 7 sept 8 huit 9 neuf 10 dix 11 onz
 ### Using Triton Inference server
 
 
-#### Create the Triton Server Model
-The whole process has been previously done [here](03-Triton.md#models-repository).
+#### Create the Triton Server Models
+The whole process has been previously documented [here](03-Triton.md#models-repository).
 Now we need to do the same to run triton upon one of our parallelized model.
 
 1. Create the triton model repository that will holds all the triton model 
@@ -161,7 +161,7 @@ sed -i 's#${batch_scheduler_policy}#guaranteed_completion#' /scratch/triton_mode
 
 #### Run the Triton Inference server
 We will use the "launch_triton_server.py" provided as part of TensorRT-LLM backends (NB: We specify here the world_size=2).
-1. Open a new SSH Terminal to your server
+1. Run a docker container based on our triton server Image
 ```
 docker run                                       \
         --runtime=nvidia                                \
