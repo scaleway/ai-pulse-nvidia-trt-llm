@@ -2,10 +2,10 @@
 
 # Serving with Triton Inference Server
 ## Introduction
-The purpose here is to compare performances of the llama2-7b model serve by Triton when it has been optimized using TensorRT-LLM Vs huggingface python one. 
+The purpose here is to compare performances of the llama2-7b model served by Triton when it has been optimized using TensorRT-LLM Vs huggingface python one. 
 ## Models Repository 
 Before launching Triton Inference Server, we need to prepare the models repository beforehand and it should respect the structure below. For further details on the model repository in Triton Inference server please refer to this [documentation](https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/docs/user_guide/model_repository.html).
-Model repository are used by the Triton Server to detect model locations.
+Models repositories are used by the Triton Server to detect model locations.
 ```
 <model-repository-path>/
   <model-name>/
@@ -57,7 +57,7 @@ triton_model_repo/llama_7b/fp16/no-inflight/
     └── config.pbtxt
 ```
 ### Steps
-1. Create the triton model repository that will holds all the triton model 
+1. Create the triton model repository that will hold the triton model 
 ```
 mkdir -p /scratch/triton_model_repo/llama_7b/python
 ```
@@ -65,12 +65,12 @@ mkdir -p /scratch/triton_model_repo/llama_7b/python
 ```
 cp -R /scratch/tensorrtllm_backend/all_models/inflight_batcher_llm/* /scratch/triton_model_repo/llama_7b/python/.
 ```
-3. Update the preprocessing template values
+3. Update the preprocessing template values (![Astuce Icon](images/common/astuce_icon.png) replace values for the model dir and the tokenizer type parameters)
 ```
 sed -i 's#${tokenizer_dir}#/workspace/meta/llama_models#' /scratch/triton_model_repo/llama_7b/python/preprocessing/config.pbtxt
 sed -i 's#${tokenizer_type}#llama#' /scratch/triton_model_repo/llama_7b/python/preprocessing/config.pbtxt
 ```
-4. Update the postprocessing template values
+4. Update the postprocessing template values (![Astuce Icon](images/common/astuce_icon.png) replace values for the model dir and the tokenizer type parameters)
 ```
 sed -i 's#${tokenizer_dir}#/workspace/meta/llama_models#' /scratch/triton_model_repo/llama_7b/python/postprocessing/config.pbtxt
 sed -i 's#${tokenizer_type}#llama#' /scratch/triton_model_repo/llama_7b/python/postprocessing/config.pbtxt
@@ -88,7 +88,7 @@ sed -i 's#${batch_scheduler_policy}#guaranteed_completion#' /scratch/triton_mode
 We will serve one reference model called *llama_python*, using Hugging Face Text Generation Pipeline and Triton Python Backend.
 The Text Generation Pipeline includes the tokenization, the inference on the model and the text decoding process. 
 
-![Astuce Icon](images/common/astuce_icon.png)For simplicity in this particular experiment, the `llama-python` folder resides at the same level as the TensorRT-LLM components described above. Thus, the model repository should be similar to the following snippet. But, this is **not** recommended for production runs. 
+![Astuce Icon](images/common/astuce_icon.png)For sake of simplicity in this particular experiment, the `llama-python` folder resides at the same level as the TensorRT-LLM components described above. Thus, the model repository should be similar to the following snippet. But, this is **not** recommended for production runs. 
 ```
 triton_model_repo/llama_7b/python
 ├── ensemble
@@ -129,9 +129,9 @@ cp /scratch/ai-pulse-nvidia-trt-llm/sources/triton/model/llama-python/config.pbt
 ![Astuce icon](./images/common/astuce_icon.png)**NB**:
 If you built the engine with `--world_size X` where `X` is greater than 1, you will need to use the [launch_triton_server.py](https://github.com/triton-inference-server/tensorrtllm_backend/blob/release/0.5.0/scripts/launch_triton_server.py) script.
 
-2. You can follow your container log using the command below ,  The server is ready when all the models' status are `READY`. The output should be similiar to this screenshot below : 
+2. You can follow your container logs using the command below ,  The server is ready when all the models' status are `READY`. The output should be similiar to this screenshot below : 
 ```
- docker logs triton_server_benchmark -f
+docker logs triton_server_benchmark -f
 ```
 ![triton server ready](./images/triton/tritonserver-ready.PNG)
 
@@ -157,7 +157,7 @@ We will rely on the [client docker image](01-setup.md#client) we have previously
 
 ## Benchmark
 ### CNN Dailymail Dataset
-In this section, we compare both model's performance on a subset of the [CNN Dailymail Dataset](https://huggingface.co/datasets/cnn_dailymail).We rely on [MLPerf Inference Benchmark Suite](https://github.com/mlcommons/inference/tree/master/language/gpt-j)) to download and generate `cnn_eval.json` file that will serve as input following these steps.
+In this section, we compare both model's performance on a subset of the [CNN Dailymail Dataset](https://huggingface.co/datasets/cnn_dailymail). We rely on [MLPerf Inference Benchmark Suite](https://github.com/mlcommons/inference/tree/master/language/gpt-j)) to download and generate `cnn_eval.json` file that will serve as input following these steps.
 
 1. Clone the repository
 ```
@@ -165,8 +165,7 @@ git -C /scratch clone https://github.com/mlcommons/inference.git
 ```
 2. Install required dependencies
 ```
-cd /scratch/inference/language/gpt-j
-pip install simplejson datasets transformers
+cd /scratch/inference/language/gpt-j && pip install simplejson datasets transformers
 ```
 3. Download dataset
 ```
@@ -174,8 +173,7 @@ python3 download_cnndm.py
 ```
 4. Extract a subset  using jq 
 ```
-mkdir /scratch/datasets
-cat /scratch/inference/language/gpt-j/data/cnn_eval.json | jq '.[0:100]' > /scratch/datasets/mini_cnn_eval.json
+mkdir /scratch/datasets && cat /scratch/inference/language/gpt-j/data/cnn_eval.json | jq '.[0:100]' > /scratch/datasets/mini_cnn_eval.json
 ```
 
 The truncated  `mini_cnn_eval.json` should have the following structure.
@@ -195,7 +193,7 @@ less  /scratch/datasets/mini_cnn_eval.json
 ```
 
 ### Performance Testing
-The [Identity Test Python VS TRT LLM script](../sources/benchmark/scripts/identity_test_python_vs_trtllm.py) will measure the total latency on multiple asynchronous request sent to the models 
+The [Identity Test Python VS TRT LLM script](../sources/benchmark/scripts/identity_test_python_vs_trtllm.py) will measure the total latency on multiple asynchronous request sent to the models based on the subset of CNN dataset.
 
 #### Launch on Python backend
 ```
@@ -226,8 +224,8 @@ The [Identity Test Python VS TRT LLM script](../sources/benchmark/scripts/identi
 ![](images/triton/tensor_trt_performance.png)
 ![](images/common/astuce_icon.png) We can see here than the targeted model on the inference server is the **ensemble** which correspond to the TensorRT-LLM optimized one.
 
-As We can see here , the Tensor TRT optimized has better performance than the non optimized one.
-The speedup when TensorRT-LLM is used compared to the Python baseline in our example is **3**. We still can improve this speedup with other optimizations. 
+**As We can see here , the Tensor TRT optimized has better performance than the non optimized one.
+The speedup when TensorRT-LLM is used compared to the Python baseline in our example is **3**. We still can improve this speedup with further optimizations.**
 
 
 
