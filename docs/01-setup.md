@@ -15,7 +15,7 @@ Components and architecture deployed here have been deployed in the context of t
 **Cost** : *Price of H100-2GPU (5.76675/hour - 31/12/2023)*
 # Infrastructure Layer
 ## Deployment
-1. Configure your environment variables, so that Scaleway terraform providers can interact with Scaleway backbone :
+1. Configure your environment variables, so that Scaleway terraform provider can interact with the Scaleway backbone :
    - SCW_ACCESS_KEY
    - SCW_SECRET_KEY
    - SCW_DEFAULT_PROJECT_ID
@@ -24,7 +24,10 @@ Components and architecture deployed here have been deployed in the context of t
 ![Astuce icon](./images/common/astuce_icon.png)  See [here](https://registry.terraform.io/providers/scaleway/scaleway/latest/docs#environment-variables) for more details.
 
 2. Configure your terraform variables by renaming the sources/infrastructure/terraform.tfvars.template -> sources/infrastructure/terraform.tfvars
-- Update the users_ips_lists that is used to restrict  access to your instance to a list of IP using a CIDR notation (e.g.: "141.124.11.12/32" , "95.121.123.14/32").
+```
+cp sources/infrastructure/terraform.tfvars.template sources/infrastructure/terraform.tfvars
+```
+- **Update the users_ips_lists that are used to restrict  access to your instance to a list of IP using a CIDR notation (e.g.: "141.124.11.12/32" , "95.121.123.14/32").**
 
 ![Astuce icon](./images/common/astuce_icon.png) You can set this value at "0.0.0.0/0" to grant access whatever the IP.
 
@@ -38,15 +41,16 @@ terraform -chdir=sources/infrastructure init &&  terraform -chdir=sources/infras
 
 ![Infrastructure Setup](images/setup/infra_setup.png)
 ## Validation
-Here we will show how you can connect to the Instance and validate the install (You could also retrieve this IP from the terraform output) 
+Here we will show how you can connect to the Instance and validate the install 
 1. Connect to your Scaleway Console 
 2. Retrieve your instance public ip from the console
 ![Public IP retrieving](images/setup/public_ip_ssh.png)
-1. Connect to your instance using ssh client
+![Astuce icon](./images/common/astuce_icon.png) You can also retrieve this IP from the terraform output
+3. Connect to your instance using ssh client
 ```
 ssh root@$PUBLIC_IP
 ```
-1. Validate that you have the right configuration (2*H100-PCIE) and right drivers using the nvidia-smi command
+4. Validate that you have the right configuration (2*H100-PCIE) and right drivers using the nvidia-smi command
 ```
 nvidia-smi
 ```
@@ -54,7 +58,7 @@ nvidia-smi
 
 # Software Layer
 ## Description
-As explained before, TensorRT-LLM will be used within Triton Inference Server to deploy the engines it has generated.
+As explained before, TensorRT-LLM will be used within Triton Inference Server.
 In this chapter, we will explain how to deploy TensorRT-LLM backend within the Triton Inference Server and also how to get the TensorTRT Toolbox.
 
 ## Prerequisites
@@ -73,13 +77,13 @@ We will use here the [official docker image](https://catalog.ngc.nvidia.com/orgs
 ![tensor rrt usage](images/setup/tensor_rrt_llm_usage.png)
 
 ### Setup
-We could have downloaded directly TRT-LLM from the [official github repository](https://github.com/NVIDIA/TensorRT-LLM) however because we will rely on Triton , we will directly download it from [TensorRT-LLM backend repository](https://github.com/triton-inference-server/tensorrtllm_backend.git) on which it is added as submodules.
+We could have downloaded directly TRT-LLM from the [official github repository](https://github.com/NVIDIA/TensorRT-LLM) however because we will rely on Triton , we will directly download it from [Triton TensorRT-LLM backend repository](https://github.com/triton-inference-server/tensorrtllm_backend.git) on which it is added as submodules.
 
 1. Clone the repository on the scratch volume
 ```
 git -C /scratch clone https://github.com/triton-inference-server/tensorrtllm_backend.git  
 ```
-2. Checkout the right version
+2. Checkout the release that has been used for this tutorial
 ```
 cd /scratch/tensorrtllm_backend && git checkout release/0.5.0
 ```
@@ -97,23 +101,18 @@ git  -C /scratch/tensorrtllm_backend submodule update --init --recursive
 git  -C /scratch/tensorrtllm_backend lfs install
 git  -C /scratch/tensorrtllm_backend lfs pull  
 ```
-
-
 ### TensorRT-LLM Backend integration in Triton
 #### Server
 At the moment of writing this document, triton docker image does not yet contains all the resources required to  launch TRT-LLM builded model.
-We will built a new docker image based on the official triton image
- using the script below : 
+We will built a new docker image based on the [official triton docker image](https://catalog.ngc.nvidia.com/orgs/nvidia/containers/tritonserver) using the script below : 
 
-1. Build the docker image
 ```
 docker build -t tritonserver-aipulse:23.10 -f /scratch/ai-pulse-nvidia-trt-llm/sources/triton/docker/server/Dockerfile .
 ```
 
-![Astuce icon](./images/common/astuce_icon.png) Scaleway H100 instances are provided with docker pre-installed .
-
-![Astuce](images/common/astuce_icon.png)Associated Dockerfile is located [here](../sources/triton/docker/server/Dockerfile)
-
+![Astuce icon](./images/common/astuce_icon.png)
+- Scaleway H100 instances are provided with docker pre-installed .
+- Associated Dockerfile is located [here](../sources/triton/docker/server/Dockerfile)
 #### Client
 To make an inference request to Triton Inference Server, we send HTTP or gRPC request to server endpoint.
 Triton offers some [Client libraries](https://github.com/triton-inference-server/client) that ease these interactions, we bundles these library using a docker image.
