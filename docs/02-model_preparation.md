@@ -26,15 +26,18 @@ cd /scratch/meta/llama_models
   - For this tutorial , we will work with llama 7B , 7B-chat , 70B and 70B-chat (**7B,7B-chat,70B,70B-chat**), but you can download all of them so that you can use them further
 4. You should have the following tree folder in your **llama_models** folder depending on which models you have downloaded
 ```
--rw-rw-r-- 1 ubuntu ubuntu   7020 Jul 15 00:06 LICENSE
--rw-rw-r-- 1 ubuntu ubuntu   4766 Jul 15 00:06 USE_POLICY.md
-drwxrwxr-x 2 ubuntu ubuntu   4096 Nov  7 08:43 llama-2-13b
-drwxrwxr-x 2 ubuntu ubuntu   4096 Nov  7 09:38 llama-2-13b-chat
-drwxrwxr-x 2 ubuntu ubuntu   4096 Nov  7 09:14 llama-2-70b
-drwxrwxr-x 2 ubuntu ubuntu   4096 Nov  7 10:08 llama-2-70b-chat
-drwxrwxr-x 2 ubuntu ubuntu   4096 Nov  7 08:38 llama-2-7b
--rw-rw-r-- 1 ubuntu ubuntu 499723 Jul 13 22:27 tokenizer.model
--rw-rw-r-- 1 ubuntu ubuntu     50 Jul 13 22:27 tokenizer_checklist.chk
+ls -l /scratch/meta/llama_models/
+```
+```
+total 528
+-rw-r--r-- 1 root root   7020 déc.  28 05:42 LICENSE
+-rw-r--r-- 1 root root   4766 déc.  28 05:42 USE_POLICY.md
+drwxr-xr-x 2 root root   4096 déc.  28 05:44 llama-2-70b
+drwxr-xr-x 2 root root   4096 déc.  28 05:48 llama-2-70b-chat
+drwxr-xr-x 2 root root   4096 déc.  28 05:42 llama-2-7b
+drwxr-xr-x 2 root root   4096 déc.  28 05:43 llama-2-7b-chat
+-rw-r--r-- 1 root root 499723 déc.  28 05:42 tokenizer.model
+-rw-r--r-- 1 root root     50 déc.  28 05:42 tokenizer_checklist.chk
 ```
 
 ### llama2  weights to HF format
@@ -86,13 +89,7 @@ As shown above, we have downloaded a trained llama2 model , then converted the w
 ### Compile Engines for Llama 2 models
 For this step, we will use script provided  in TRT-LLM from the [official github repository](https://github.com/NVIDIA/TensorRT-LLM).
 
-![Astuce icon](./images/common/astuce_icon.png) We have already cloned this repository and the source could be found at  **/scratch/tensorrtllm_backend/tensorrt_llm**.
-
-1. Open the folder containing the scripts
-```
-cd /scratch/tensorrtllm_backend/tensorrt_llm/examples/llama/
-```
-2. Run the `build.py` script to compile the TRT-LLM engines.
+1. Run the `build.py` script to compile the TRT-LLM engines.
 ```
  docker run                                       \
         --runtime=nvidia                                \
@@ -116,7 +113,9 @@ cd /scratch/tensorrtllm_backend/tensorrt_llm/examples/llama/
         --use_inflight_batching
 ```
 ![TRT LLM Compilation](./images/model_preparation/trt_llm_compile.png)
-![Astuce icon](./images/common/astuce_icon.png) We also rely here on the **Triton server image created before** as it contains all the python dependencies required for the process.
+![Astuce icon](./images/common/astuce_icon.png) 
+- We  rely here on the **Triton server image created before** as it contains all the python dependencies required for the process.
+- The Tensor RT LLM repository have been previously cloned and the source could be found at  **/scratch/tensorrtllm_backend/tensorrt_llm**.
 
 ### Testing
 We can test the output of the model with `run.py` located in the same llama examples folder.
